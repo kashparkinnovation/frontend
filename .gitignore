@@ -1,0 +1,15 @@
+node_modules/*
+.next/*
+out/*
+dist/*
+build/*
+coverage/*
+.DS_Store
+.next
+node_modules
+dist
+build
+coverage
+out
+*.log
+
