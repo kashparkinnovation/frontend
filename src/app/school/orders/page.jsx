@@ -7,32 +7,15 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import Drawer, { DrawerRow, DrawerSection } from '@/components/ui/Drawer';
 import { useToast } from '@/context/ToastContext';
 
-interface Order {
-  id: number;
-  order_number: string;
-  student_name: string;
-  vendor_name: string;
-  status: string;
-  distribution_status: string;
-  total_amount: string;
-  subtotal: string;
-  items?: { product_name: string; size: string; color: string; quantity: number; unit_price: string }[];
-  bulk_order: number | null;
-  bulk_order_number: string | null;
-  notes: string;
-  created_at: string;
-  distributed_at: string | null;
-}
-
 export default function SchoolOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
-  const [selected, setSelected] = useState<Order | null>(null);
+  const [selected, setSelected] = useState(null);
   const [distributing, setDistributing] = useState(false);
   const { showToast } = useToast();
 
-  const fetchOrders = async () => {
+  const fetchOrders = React.useCallback(async () => {
     setLoading(true);
     try {
       const query = filter ? `?status=${filter}` : '';
@@ -43,11 +26,11 @@ export default function SchoolOrdersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, showToast]);
 
-  useEffect(() => { fetchOrders(); }, [filter]);
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
-  const handleDistribute = async (newStatus: 'collected' | 'returned') => {
+  const handleDistribute = async (newStatus) => {
     if (!selected) return;
     setDistributing(true);
     try {

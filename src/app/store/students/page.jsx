@@ -6,19 +6,6 @@ import apiClient from '@/lib/api';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { useStudent } from '@/context/StudentContext';
 
-interface StudentProfile {
-  id: number;
-  student_name: string;
-  class_name: string;
-  section: string;
-  roll_number: string;
-  student_id: string;
-  school: number;
-  school_name: string;
-  is_verified: boolean;
-  verified_at: string | null;
-}
-
 export default function StudentsListPage() {
   const { students, setStudents, activeStudent, setActiveStudent } = useStudent();
   const [loading, setLoading] = useState(students.length === 0);
@@ -28,7 +15,7 @@ export default function StudentsListPage() {
       const list = r.data.results ?? r.data;
       setStudents(list);
     }).catch(console.error).finally(() => setLoading(false));
-  }, []);
+  }, [setStudents]);
 
   return (
     <div>

@@ -58,7 +58,7 @@ export default function StoreHomePage() {
         <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', marginBottom: '2rem', display: 'flex', border: '1px solid #e2e8f0', background: 'white', boxShadow: '0 4px 14px rgb(0 0 0/0.05)' }}>
           <div style={{ flex: 1, padding: '3rem 2.5rem', zIndex: 10 }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 0.5rem', color: '#0f172a' }}>No student profiles yet</h2>
-            <p style={{ color: '#64748b', margin: '0 0 1.5rem', fontSize: '1rem', maxWidth: 400 }}>Add your child's details to link them to their school and start shopping for their official uniforms.</p>
+            <p style={{ color: '#64748b', margin: '0 0 1.5rem', fontSize: '1rem', maxWidth: 400 }}>Add your child&apos;s details to link them to their school and start shopping for their official uniforms.</p>
             <Link href="/store/students/new" style={{ display: 'inline-flex', alignItems: 'center', background: '#4f46e5', color: 'white', fontWeight: 700, padding: '0.875rem 2rem', borderRadius: '10px', textDecoration: 'none', boxShadow: '0 4px 14px rgba(79,70,229,0.3)' }}>+ Add First Student</Link>
           </div>
           <div style={{ width: '40%', minWidth: 250, position: 'relative' }}>

@@ -48,14 +48,14 @@ export default function VendorCouponsPage() {
   const [toggling, setToggling] = useState<number | null>(null);
   const { showToast } = useToast();
 
-  const fetchCoupons = () => {
+  const fetchCoupons = React.useCallback(() => {
     apiClient.get('/orders/coupons/')
       .then((r) => setCoupons(r.data.results ?? r.data))
       .catch(() => showToast('Failed to load coupons', 'error'))
       .finally(() => setLoading(false));
-  };
+  }, [showToast]);
 
-  useEffect(() => { fetchCoupons(); }, []);
+  useEffect(() => { fetchCoupons(); }, [fetchCoupons]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

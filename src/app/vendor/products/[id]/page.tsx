@@ -21,7 +21,7 @@ export default function ProductDetailPage() {
   const [uploading, setUploading] = useState(false);
   const [activeImg, setActiveImg] = useState<string | null>(null);
 
-  const fetchProduct = () => {
+  const fetchProduct = React.useCallback(() => {
     apiClient.get(`/store/vendor/products/${id}/`)
       .then((r) => {
         setProduct(r.data);
@@ -30,9 +30,9 @@ export default function ProductDetailPage() {
       })
       .catch(() => toast('Failed to load product', 'error'))
       .finally(() => setLoading(false));
-  };
+  }, [id, toast]);
 
-  useEffect(() => { fetchProduct(); }, [id]);
+  useEffect(() => { fetchProduct(); }, [fetchProduct]);
 
   const resolveUrl = (url: string) => url.startsWith('http') ? url : `${API_BASE}${url}`;
 

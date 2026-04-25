@@ -28,7 +28,7 @@ export default function VendorCustomersPage() {
       .then((r) => setCustomers(r.data))
       .catch(() => showToast('Failed to load customers', 'error'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [showToast]);
 
   const fmt = (n: number) => `₹${n.toLocaleString('en-IN')}`;
 

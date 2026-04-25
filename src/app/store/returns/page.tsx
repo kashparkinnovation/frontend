@@ -46,7 +46,7 @@ export default function MyReturnsPage() {
         <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '4rem', textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>↩️</div>
           <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 0.5rem' }}>No Returns Found</h2>
-          <p style={{ color: '#64748b', margin: '0 0 1.5rem', fontSize: '0.9rem' }}>You haven't requested any returns or exchanges yet.</p>
+          <p style={{ color: '#64748b', margin: '0 0 1.5rem', fontSize: '0.9rem' }}>You haven&apos;t requested any returns or exchanges yet.</p>
           <Link href="/store/orders" style={{ display: 'inline-block', background: '#4f46e5', color: 'white', fontWeight: 700, padding: '0.75rem 1.75rem', borderRadius: '10px', textDecoration: 'none' }}>View My Orders</Link>
         </div>
       ) : (

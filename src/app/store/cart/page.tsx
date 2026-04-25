@@ -33,7 +33,7 @@ export default function CartPage() {
         <div style={{ background: 'white', borderRadius: '24px', padding: '4rem', textAlign: 'center', maxWidth: 440, width: '100%', boxShadow: 'var(--mat-shadow-2)', border: '1px solid var(--mat-border)' }}>
           <div style={{ fontSize: '4rem', marginBottom: '1.25rem' }}>🛒</div>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 0.75rem', letterSpacing: '-0.03em' }}>Your cart is empty</h2>
-          <p style={{ color: 'var(--mat-text-2)', margin: '0 0 2rem', lineHeight: 1.6 }}>Browse your school's catalogue and add uniforms for your child.</p>
+          <p style={{ color: 'var(--mat-text-2)', margin: '0 0 2rem', lineHeight: 1.6 }}>Browse your school&apos;s catalogue and add uniforms for your child.</p>
           <Link href="/browse" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'var(--mat-primary)', color: 'white', padding: '0.875rem 2rem', borderRadius: '12px', textDecoration: 'none', fontWeight: 700, fontSize: '1rem', boxShadow: '0 4px 14px rgba(79,70,229,0.3)' }}>
             Browse Schools →
           </Link>

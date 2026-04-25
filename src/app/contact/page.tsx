@@ -28,7 +28,7 @@ export default function ContactPage() {
         <div style={{ maxWidth: 1000, margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) minmax(400px, 1.2fr)', gap: '4rem', alignItems: 'center' }}>
           <div>
             <h1 style={{ fontSize: '3rem', fontWeight: 900, marginBottom: '1rem', color: '#0f172a', letterSpacing: '-0.02em' }}>Get in Touch.</h1>
-            <p style={{ fontSize: '1.125rem', color: '#64748b', lineHeight: 1.6, marginBottom: '2.5rem' }}>Have questions about verifying your student ID or completing a vendor application? We're here to help.</p>
+            <p style={{ fontSize: '1.125rem', color: '#64748b', lineHeight: 1.6, marginBottom: '2.5rem' }}>Have questions about verifying your student ID or completing a vendor application? We&apos;re here to help.</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                 <div style={{ width: 48, height: 48, borderRadius: '12px', background: '#eef2ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>📍</div>
@@ -53,7 +53,7 @@ export default function ContactPage() {
               <div style={{ background: '#dcfce7', color: '#166534', padding: '1.5rem', borderRadius: '12px', textAlign: 'center' }}>
                 <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✅</div>
                 <h4 style={{ margin: '0 0 0.5rem', fontWeight: 700 }}>Message Sent!</h4>
-                <p style={{ margin: 0, fontSize: '0.9rem' }}>We've received your request and will be in touch shortly.</p>
+                <p style={{ margin: 0, fontSize: '0.9rem' }}>We&apos;ve received your request and will be in touch shortly.</p>
                 <button onClick={() => setStatus('idle')} style={{ background: 'transparent', border: '1px solid #166534', color: '#166534', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', marginTop: '1rem', fontSize: '0.875rem' }}>Send Another</button>
               </div>
             ) : (

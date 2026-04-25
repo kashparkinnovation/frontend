@@ -53,7 +53,7 @@ export default function VendorBillingPage() {
       })
       .catch(() => showToast('Failed to load billing records', 'error'))
       .finally(() => setLoading(false));
-  }, [filter]);
+  }, [filter, showToast]);
 
   const totalRevenue = orders
     .filter((o) => ['confirmed','processing','shipped','delivered'].includes(o.status))

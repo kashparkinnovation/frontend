@@ -5,48 +5,29 @@ import Cookies from 'js-cookie';
 import apiClient from '@/lib/api';
 import Drawer, { DrawerRow, DrawerSection } from '@/components/ui/Drawer';
 
-interface School {
-  id: number;
-  school_user: number;
-  name: string;
-  code: string;
-  vendor_name: string;
-  address: string;
-  pincode: string;
-  city: string;
-  state: string;
-  contact_email: string;
-  contact_phone: string;
-  approval_status: string;
-  rejection_reason: string;
-  applied_at: string;
-  approved_at: string | null;
-  created_at: string;
-}
-
 export default function AdminSchoolsPage() {
-  const [schools, setSchools] = useState<School[]>([]);
+  const [schools, setSchools] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
-  const [selected, setSelected] = useState<School | null>(null);
+  const [selected, setSelected] = useState(null);
 
-  const [editData, setEditData] = useState<any>({});
+  const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchSchools();
-  }, [filter]);
-
-  const fetchSchools = () => {
+  const fetchSchools = React.useCallback(() => {
     setLoading(true);
     const params = filter ? `?approval_status=${filter}` : '';
     apiClient.get(`/schools/${params}`)
       .then(({ data }) => setSchools(Array.isArray(data) ? data : (data.results ?? [])))
       .catch(console.error)
       .finally(() => setLoading(false));
-  };
+  }, [filter]);
 
-  const updateStatus = async (id: number, action: 'approved' | 'rejected', e?: React.MouseEvent) => {
+  useEffect(() => {
+    fetchSchools();
+  }, [fetchSchools]);
+
+  const updateStatus = async (id, action, e) => {
     if (e) e.stopPropagation();
     try {
       await apiClient.patch(`/schools/${id}/approve/`, { approval_status: action });
@@ -59,7 +40,7 @@ export default function AdminSchoolsPage() {
     }
   };
 
-  const handleSaveEdit = async (e: React.FormEvent) => {
+  const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!selected) return;
     setSaving(true);
@@ -103,7 +84,7 @@ export default function AdminSchoolsPage() {
     }
   };
 
-  const openDrawer = (s: School) => {
+  const openDrawer = (s) => {
     setSelected(s);
     setEditData({
       name: s.name,
@@ -116,7 +97,7 @@ export default function AdminSchoolsPage() {
     });
   };
 
-  const statusColor = (s: string) => {
+  const statusColor = (s) => {
     switch (s) {
       case 'approved': return { bg: '#dcfce7', fg: '#166534' };
       case 'rejected': return { bg: '#fee2e2', fg: '#991b1b' };

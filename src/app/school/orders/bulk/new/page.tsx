@@ -44,7 +44,7 @@ export default function BulkOrderFormPage() {
       }
     };
     fetchProfile();
-  }, []);
+  }, [showToast]);
 
   // ── Row helpers ──────────────────────────────────────────────────────────────
 
@@ -122,7 +122,7 @@ export default function BulkOrderFormPage() {
         <div>
           <h1 className="page-title">New Bulk Order</h1>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Add each student's order as a row. All orders are shipped to the school and distributed manually.
+            Add each student&apos;s order as a row. All orders are shipped to the school and distributed manually.
           </p>
         </div>
       </div>

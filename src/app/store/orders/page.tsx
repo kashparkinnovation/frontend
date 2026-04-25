@@ -114,7 +114,7 @@ export default function MyOrdersPage() {
         <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '4rem', textAlign: 'center' }}>
           <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>🛒</div>
           <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 0.5rem' }}>No orders found</h2>
-          <p style={{ color: '#64748b', margin: '0 0 1.5rem', fontSize: '0.9rem' }}>Get started by shopping your school's uniform catalogue.</p>
+          <p style={{ color: '#64748b', margin: '0 0 1.5rem', fontSize: '0.9rem' }}>Get started by shopping your school&apos;s uniform catalogue.</p>
           <Link href="/store" style={{ display: 'inline-block', background: '#4f46e5', color: 'white', fontWeight: 700, padding: '0.75rem 1.75rem', borderRadius: '10px', textDecoration: 'none' }}>Browse Now →</Link>
         </div>
       ) : (
@@ -179,7 +179,7 @@ export default function MyOrdersPage() {
             )}
 
             {/* Status timeline hint */}
-            <DrawerSection title="What's Next?" />
+            <DrawerSection title="What&apos;s Next?" />
             <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '1rem', fontSize: '0.875rem', color: '#64748b', lineHeight: 1.6 }}>
               {selected.status === 'pending' && '⏳ Your order has been placed and is awaiting confirmation from the school.'}
               {selected.status === 'confirmed' && '✅ Order confirmed! It will be processed and delivered to your school.'}

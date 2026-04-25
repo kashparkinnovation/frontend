@@ -132,7 +132,7 @@ export default function LandingPage() {
               Experience.
             </h1>
             <p style={{ fontSize: '1.125rem', color: '#cbd5e1', lineHeight: 1.7, margin: '0 0 2.5rem', maxWidth: 540 }}>
-              Say goodbye to long queues and hassle. Explore your school's official catalogue with high-definition imagery and order directly to your classroom.
+              Say goodbye to long queues and hassle. Explore your school&apos;s official catalogue with high-definition imagery and order directly to your classroom.
             </p>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <Link href="/browse" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'white', color: '#0f172a', fontWeight: 800, fontSize: '1rem', padding: '1rem 2.25rem', borderRadius: '12px', textDecoration: 'none', transition: 'all 0.2s', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' }}
@@ -196,7 +196,7 @@ export default function LandingPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem' }}>
             {CATEGORIES.map((cat, i) => (
-              <div key={i} style={{ borderRadius: '16px', overflow: 'hidden', position: 'relative', aspectRatio: '4/5', cursor: 'pointer', group: 'true' }}>
+              <div key={i} style={{ borderRadius: '16px', overflow: 'hidden', position: 'relative', aspectRatio: '4/5', cursor: 'pointer' }}>
                 <img src={cat.image} alt={cat.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94)' }} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%)' }} />
                 <div style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem', right: '1.5rem' }}>
@@ -318,8 +318,8 @@ export default function LandingPage() {
       <section style={{ background: '#0f172a', padding: '5rem 2rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url("https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=2000&q=80")', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.1 }} />
         <div style={{ position: 'relative', maxWidth: 640, margin: '0 auto', zIndex: 10 }}>
-          <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', fontWeight: 900, color: 'white', letterSpacing: '-0.04em', margin: '0 0 1.125rem' }}>Ready to Order Your Child's Uniforms?</h2>
-          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.0625rem', margin: '0 0 2.5rem', lineHeight: 1.6 }}>Join thousands of parents who've upgraded their uniform shopping experience.</p>
+          <h2 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.75rem)', fontWeight: 900, color: 'white', letterSpacing: '-0.04em', margin: '0 0 1.125rem' }}>Ready to Order Your Child&apos;s Uniforms?</h2>
+          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.0625rem', margin: '0 0 2.5rem', lineHeight: 1.6 }}>Join thousands of parents who&apos;ve upgraded their uniform shopping experience.</p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'var(--mat-primary)', color: 'white', fontWeight: 800, fontSize: '1rem', padding: '1rem 2.5rem', borderRadius: '12px', textDecoration: 'none', boxShadow: '0 8px 32px rgba(79,70,229,0.4)' }}>Get Started Now</Link>
           </div>
@@ -375,13 +375,13 @@ export default function LandingPage() {
             <div style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '2.5rem', display: 'flex', flexDirection: 'column' }}>
               <div style={{ color: '#fbbf24', fontSize: '1.25rem', marginBottom: '1rem', letterSpacing: '2px' }}>★★★★★</div>
               <p style={{ fontSize: '1.125rem', color: '#e2e8f0', lineHeight: 1.6, flex: 1, fontStyle: 'italic', marginBottom: '2rem' }}>
-                "We used to stand in line for 3 hours every summer just to get the right sizes. With eSchoolKart, I ordered directly from my phone and my son's new blazer was delivered straight to his homeroom teacher."
+                &quot;We used to stand in line for 3 hours every summer just to get the right sizes. With eSchoolKart, I ordered directly from my phone and my son&apos;s new blazer was delivered straight to his homeroom teacher.&quot;
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <img src="/images/testimonial_1.png" alt="Happy Parent" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid #4f46e5' }} />
                 <div>
                   <h4 style={{ margin: 0, color: 'white', fontWeight: 700, fontSize: '1rem' }}>Priyanka S.</h4>
-                  <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.875rem' }}>Parent • St. Jude's Academy</p>
+                  <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.875rem' }}>Parent • St. Jude&apos;s Academy</p>
                 </div>
               </div>
             </div>
@@ -389,7 +389,7 @@ export default function LandingPage() {
             <div style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', padding: '2.5rem', display: 'flex', flexDirection: 'column' }}>
               <div style={{ color: '#fbbf24', fontSize: '1.25rem', marginBottom: '1rem', letterSpacing: '2px' }}>★★★★★</div>
               <p style={{ fontSize: '1.125rem', color: '#e2e8f0', lineHeight: 1.6, flex: 1, fontStyle: 'italic', marginBottom: '2rem' }}>
-                "The quality of the material is incredibly premium, and it perfectly matches the school's strict guidelines. I had peace of mind knowing these weren't counterfeit knockoffs."
+                &quot;The quality of the material is incredibly premium, and it perfectly matches the school&apos;s strict guidelines. I had peace of mind knowing these weren&apos;t counterfeit knockoffs.&quot;
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <img src="/images/testimonial_2.png" alt="Happy Parent" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '2px solid #8b5cf6' }} />
@@ -440,7 +440,7 @@ export default function LandingPage() {
             Ready for a seamless school year?
           </h2>
           <p style={{ color: '#94a3b8', fontSize: '1.125rem', margin: '0 0 2.5rem', lineHeight: 1.6 }}>
-            Create your parent profile in 60 seconds and start exploring your school's catalog today.
+            Create your parent profile in 60 seconds and start exploring your school&apos;s catalog today.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'white', color: '#0f172a', fontWeight: 800, fontSize: '1.125rem', padding: '1rem 2.5rem', borderRadius: '14px', textDecoration: 'none', transition: 'transform 0.2s' }}

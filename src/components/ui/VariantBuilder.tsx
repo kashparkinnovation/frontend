@@ -146,7 +146,7 @@ export default function VariantBuilder({ variants, onChange, basePrice }: Varian
             {activeVariants.length === 0 && (
               <tr>
                 <td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '1.5rem' }}>
-                  No variants yet — click "Add Row" or use quick-add above
+                  No variants yet — click &quot;Add Row&quot; or use quick-add above
                 </td>
               </tr>
             )}

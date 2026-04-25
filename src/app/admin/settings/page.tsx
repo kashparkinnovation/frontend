@@ -66,7 +66,7 @@ export default function PlatformSettingsPage() {
                 Platform Commission Percentage (%)
               </label>
               <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.75rem' }}>
-                The cut the platform takes from every successfully delivered order. This is deducted from the vendor's total payout.
+                The cut the platform takes from every successfully delivered order. This is deducted from the vendor&apos;s total payout.
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <input 

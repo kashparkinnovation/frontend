@@ -7,26 +7,15 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import Drawer, { DrawerRow, DrawerSection } from '@/components/ui/Drawer';
 import { useToast } from '@/context/ToastContext';
 
-interface Order {
-  id: number;
-  order_number: string;
-  student_name: string;
-  vendor_name: string;
-  status: string;
-  distribution_status: string;
-  total_amount: string;
-  distributed_at: string | null;
-}
-
 export default function DistributionPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ready_for_pickup');
-  const [selected, setSelected] = useState<Order | null>(null);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [selected, setSelected] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
   const { showToast } = useToast();
 
-  const fetchOrders = async () => {
+  const fetchOrders = React.useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await apiClient.get(`/orders/school/?distribution_status=${filter}`);
@@ -36,11 +25,11 @@ export default function DistributionPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, showToast]);
 
-  useEffect(() => { fetchOrders(); }, [filter]);
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
-  const updateDistribution = async (id: number, newStatus: 'collected' | 'returned') => {
+  const updateDistribution = async (id, newStatus) => {
     setActionLoading(id);
     try {
       const { data } = await apiClient.patch(`/orders/school/${id}/distribute/`, { distribution_status: newStatus });

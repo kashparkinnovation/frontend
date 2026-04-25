@@ -8,7 +8,7 @@ import { useStudent } from '@/context/StudentContext';
 import { useCart } from '@/context/CartContext';
 import apiClient from '@/lib/api';
 
-export default function StoreLayout({ children }: { children: React.ReactNode }) {
+export default function StoreLayout({ children }) {
   const { isAuthenticated, isLoading: authLoading, logout, user } = useAuth();
   const { students, activeStudent, setActiveStudent, setStudents, refreshNeeded } = useStudent();
   const { totalItems } = useCart();
@@ -19,7 +19,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
     if (!authLoading && !isAuthenticated) {
       router.replace('/login?next=/store');
     }
-  }, [authLoading, isAuthenticated]);
+  }, [authLoading, isAuthenticated, router]);
 
   // Load student profiles on mount and whenever refresh is triggered
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function StoreLayout({ children }: { children: React.ReactNode })
       const list = r.data.results ?? r.data;
       setStudents(list);
     }).catch(console.error);
-  }, [isAuthenticated, refreshNeeded]);
+  }, [isAuthenticated, refreshNeeded, setStudents]);
 
   if (authLoading || !isAuthenticated) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#94a3b8', fontFamily: 'var(--font-sans)' }}>Loading…</div>;

@@ -7,20 +7,10 @@ import apiClient from '@/lib/api';
 import Drawer, { DrawerRow, DrawerSection } from '@/components/ui/Drawer';
 import { useToast } from '@/context/ToastContext';
 
-interface BulkOrder {
-  id: number;
-  bulk_order_number: string;
-  vendor_name: string;
-  notes: string;
-  total_orders: number;
-  total_amount: string;
-  created_at: string;
-}
-
 export default function BulkOrdersListPage() {
-  const [bulkOrders, setBulkOrders] = useState<BulkOrder[]>([]);
+  const [bulkOrders, setBulkOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<BulkOrder | null>(null);
+  const [selected, setSelected] = useState(null);
   const { showToast } = useToast();
   const router = useRouter();
 
@@ -36,7 +26,7 @@ export default function BulkOrdersListPage() {
       }
     };
     fetch();
-  }, []);
+  }, [showToast]);
 
   return (
     <div>

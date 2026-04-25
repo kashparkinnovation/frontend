@@ -31,7 +31,7 @@ export default function AdminVerificationQueuePage() {
   const [reviewNote, setReviewNote] = useState('');
   const [actioning, setActioning] = useState(false);
 
-  const fetchQueue = async () => {
+  const fetchQueue = React.useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await apiClient.get(`/students/admin/verification-requests/?status=${filter}`);
@@ -41,9 +41,9 @@ export default function AdminVerificationQueuePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
-  useEffect(() => { fetchQueue(); }, [filter]);
+  useEffect(() => { fetchQueue(); }, [filter, fetchQueue]);
 
   const openDrawer = (req: VerificationRequest) => {
     setSelected(req);
@@ -158,14 +158,14 @@ export default function AdminVerificationQueuePage() {
 
             {selected.request_note && (
               <>
-                <DrawerSection title="Student's Message to School" />
+                <DrawerSection title="Student&apos;s Message to School" />
                 <p style={{ margin: 0, fontSize: '0.875rem', color: '#475569', lineHeight: 1.5 }}>{selected.request_note}</p>
               </>
             )}
 
             {selected.review_note && (
               <>
-                <DrawerSection title="School's Final Review Note" />
+                <DrawerSection title="School&apos;s Final Review Note" />
                 <p style={{ margin: 0, fontSize: '0.875rem', color: '#475569', lineHeight: 1.5 }}>{selected.review_note}</p>
               </>
             )}
@@ -217,7 +217,7 @@ export default function AdminVerificationQueuePage() {
 
             <div style={{ marginTop: '2rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
-                <strong>Note:</strong> As an admin, you have oversight authority to bypass the school's queue and directly approve or reject a student verification yourself.
+                <strong>Note:</strong> As an admin, you have oversight authority to bypass the school&apos;s queue and directly approve or reject a student verification yourself.
               </p>
             </div>
           </>

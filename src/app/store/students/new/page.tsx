@@ -78,7 +78,7 @@ export default function NewStudentPage() {
       <div style={{ marginBottom: '1.75rem' }}>
         <Link href="/store/students" style={{ fontSize: '0.875rem', color: '#94a3b8', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', marginBottom: '0.875rem' }}>← Back to Students</Link>
         <h1 style={{ fontSize: '1.625rem', fontWeight: 800, margin: '0 0 0.25rem', letterSpacing: '-0.02em' }}>Add Student Profile</h1>
-        <p style={{ color: '#64748b', margin: 0, fontSize: '0.9375rem' }}>Enter your child's school details to create their profile.</p>
+        <p style={{ color: '#64748b', margin: 0, fontSize: '0.9375rem' }}>Enter your child&apos;s school details to create their profile.</p>
       </div>
 
       <form onSubmit={handleSubmit} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -94,7 +94,7 @@ export default function NewStudentPage() {
           <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Only approved schools are listed. <Link href="/browse" style={{ color: '#4f46e5' }}>Browse all schools →</Link></span>
         </div>
 
-        {inp('student_name', "Student's Full Name", 'e.g., Priya Sharma', true)}
+        {inp('student_name', "Student&apos;s Full Name", 'e.g., Priya Sharma', true)}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>

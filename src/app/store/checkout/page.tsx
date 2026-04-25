@@ -94,7 +94,7 @@ export default function CheckoutPage() {
             </div>
           )}
           <p style={{ color: 'var(--mat-text-3)', fontSize: '0.875rem', margin: '0 0 2rem', lineHeight: 1.7 }}>
-            Your school will be notified and uniforms will be distributed when ready. You'll receive updates in your orders dashboard.
+            Your school will be notified and uniforms will be distributed when ready. You&apos;ll receive updates in your orders dashboard.
           </p>
           {/* Order status stepper */}
           <div style={{ display: 'flex', marginBottom: '2.5rem', gap: '0' }}>

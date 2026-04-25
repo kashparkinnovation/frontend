@@ -7,43 +7,14 @@ import apiClient from '@/lib/api';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { useToast } from '@/context/ToastContext';
 
-interface OrderItem {
-  id: number;
-  product_name: string;
-  size: string;
-  color: string;
-  quantity: number;
-  unit_price: string;
-  line_total: string;
-}
-
-interface Order {
-  id: number;
-  order_number: string;
-  status: string;
-  distribution_status: string;
-  student_name: string;
-  vendor_name: string;
-  bulk_order: number | null;
-  bulk_order_number: string | null;
-  subtotal: string;
-  tax_amount: string;
-  shipping_amount: string;
-  total_amount: string;
-  distributed_at: string | null;
-  notes: string;
-  items: OrderItem[];
-  created_at: string;
-}
-
 export default function SchoolOrderDetailPage() {
   const { id } = useParams();
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [distributing, setDistributing] = useState(false);
   const { showToast } = useToast();
 
-  const fetchOrder = async () => {
+  const fetchOrder = React.useCallback(async () => {
     if (!id) return;
     try {
       const { data } = await apiClient.get(`/orders/school/${id}/`);
@@ -54,13 +25,13 @@ export default function SchoolOrderDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, showToast]);
 
   useEffect(() => {
     fetchOrder();
-  }, [id]);
+  }, [fetchOrder]);
 
-  const handleDistribute = async (newStatus: 'collected' | 'returned' | 'ready_for_pickup') => {
+  const handleDistribute = async (newStatus) => {
     if (!order) return;
     setDistributing(true);
     try {

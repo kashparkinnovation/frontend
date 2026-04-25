@@ -5,12 +5,7 @@ import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
 import apiClient from '@/lib/api';
 
-interface Props {
-  slug: string;
-  defaultTitle: string;
-}
-
-export default function StaticPageView({ slug, defaultTitle }: Props) {
+export default function StaticPageView({ slug, defaultTitle }) {
   const [content, setContent] = useState('');
   const [title, setTitle] = useState(defaultTitle);
   const [loading, setLoading] = useState(true);
@@ -22,13 +17,13 @@ export default function StaticPageView({ slug, defaultTitle }: Props) {
         setTitle(res.data.title);
         setContent(res.data.content);
 
-        const injectHTML = (htmlString: string, targetNode: HTMLElement) => {
+        const injectHTML = (htmlString, targetNode) => {
           if (!htmlString) return;
           const container = document.createElement('div');
           container.innerHTML = htmlString;
           Array.from(container.childNodes).forEach((node) => {
             if (node.nodeName.toLowerCase() === 'script') {
-              const scriptParams = node as HTMLScriptElement;
+              const scriptParams = node;
               const newScript = document.createElement('script');
               Array.from(scriptParams.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
               newScript.appendChild(document.createTextNode(scriptParams.innerHTML));
@@ -52,9 +47,8 @@ export default function StaticPageView({ slug, defaultTitle }: Props) {
     // Cleanup function to remove injected scripts/styles when navigating away
     return () => {
       // In a real robust system, we would track injected nodes and remove them.
-      // But adding/removing native tags cleanly usually requires custom tagging.
     };
-  }, [slug]);
+  }, [slug, defaultTitle]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#fafafa' }}>

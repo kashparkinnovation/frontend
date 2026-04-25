@@ -5,7 +5,7 @@ import apiClient from '@/lib/api';
 import { useToast } from '@/context/ToastContext';
 
 export default function SchoolProfilePage() {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
 
@@ -21,13 +21,13 @@ export default function SchoolProfilePage() {
       }
     };
     fetchProfile();
-  }, []);
+  }, [showToast]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await apiClient.patch('/schools/profile/', profile);

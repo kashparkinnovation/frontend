@@ -9,7 +9,7 @@ import { useToast } from '@/context/ToastContext';
 
 export default function BulkOrderDetailPage() {
   const { id } = useParams();
-  const [bulkOrder, setBulkOrder] = useState<any>(null);
+  const [bulkOrder, setBulkOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
 
@@ -26,7 +26,7 @@ export default function BulkOrderDetailPage() {
       }
     };
     fetchDetail();
-  }, [id]);
+  }, [id, showToast]);
 
   if (loading) return <div style={{ padding: '2rem' }}>Loading...</div>;
   if (!bulkOrder) return <div style={{ padding: '2rem' }}>Order not found.</div>;
@@ -63,7 +63,7 @@ export default function BulkOrderDetailPage() {
             </tr>
           </thead>
           <tbody>
-            {bulkOrder.orders?.map((order: any) => (
+            {bulkOrder.orders?.map((order) => (
               <tr key={order.id}>
                 <td>
                   <Link href={`/school/orders/${order.id}`} style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
@@ -72,7 +72,7 @@ export default function BulkOrderDetailPage() {
                 </td>
                 <td style={{ fontWeight: 500 }}>{order.student_name}</td>
                 <td style={{ color: 'var(--color-text-secondary)' }}>
-                  {order.items?.map((item: any) => `${item.product_name} (${item.quantity})`).join(', ')}
+                  {order.items?.map((item) => `${item.product_name} (${item.quantity})`).join(', ')}
                 </td>
                 <td><StatusBadge status={order.status} /></td>
                 <td><StatusBadge status={order.distribution_status} /></td>

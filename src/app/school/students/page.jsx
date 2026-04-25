@@ -6,29 +6,16 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import Drawer, { DrawerRow, DrawerSection } from '@/components/ui/Drawer';
 import { useToast } from '@/context/ToastContext';
 
-interface StudentProfile {
-  id: number;
-  student_name: string;
-  class_name: string;
-  section: string;
-  roll_number: string;
-  student_id: string;
-  parent_email: string;
-  is_verified: boolean;
-  verified_at: string | null;
-  created_at: string;
-}
-
 export default function StudentsListPage() {
-  const [students, setStudents] = useState<StudentProfile[]>([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState<StudentProfile | null>(null);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [selected, setSelected] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
   const { showToast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef(null);
 
-  const fetchStudents = async () => {
+  const fetchStudents = React.useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await apiClient.get('/students/');
@@ -39,11 +26,11 @@ export default function StudentsListPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
-  useEffect(() => { fetchStudents(); }, []);
+  useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const formData = new FormData();
@@ -69,7 +56,7 @@ export default function StudentsListPage() {
     a.click(); URL.revokeObjectURL(a.href);
   };
 
-  const handleVerify = async (student: StudentProfile) => {
+  const handleVerify = async (student) => {
     setActionLoading(student.id);
     try {
       const endpoint = student.is_verified ? `/students/${student.id}/unverify/` : `/students/${student.id}/verify/`;

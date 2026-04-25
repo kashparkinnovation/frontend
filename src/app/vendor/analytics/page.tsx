@@ -56,7 +56,7 @@ export default function VendorAnalyticsPage() {
       .then((r) => setData(r.data))
       .catch(() => showToast('Failed to load analytics', 'error'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [showToast]);
 
   const fmt = (n: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 

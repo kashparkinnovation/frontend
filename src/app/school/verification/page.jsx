@@ -6,26 +6,16 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import Drawer, { DrawerRow, DrawerSection } from '@/components/ui/Drawer';
 import { useToast } from '@/context/ToastContext';
 
-interface VerificationRequest {
-  id: number;
-  student: { id: number; student_name: string; class_name: string; section: string; roll_number: string; };
-  status: string;
-  request_note: string;
-  review_note: string;
-  id_card: string | null;
-  created_at: string;
-}
-
 export default function VerificationQueuePage() {
-  const [requests, setRequests] = useState<VerificationRequest[]>([]);
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('pending');
-  const [selected, setSelected] = useState<VerificationRequest | null>(null);
+  const [selected, setSelected] = useState(null);
   const [reviewNote, setReviewNote] = useState('');
   const [actioning, setActioning] = useState(false);
   const { showToast } = useToast();
 
-  const fetchQueue = async () => {
+  const fetchQueue = React.useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await apiClient.get(`/students/school/verification-requests/?status=${filter}`);
@@ -35,16 +25,16 @@ export default function VerificationQueuePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, showToast]);
 
-  useEffect(() => { fetchQueue(); }, [filter]);
+  useEffect(() => { fetchQueue(); }, [fetchQueue]);
 
-  const openDrawer = (req: VerificationRequest) => {
+  const openDrawer = (req) => {
     setSelected(req);
     setReviewNote('');
   };
 
-  const handleAction = async (action: 'approve' | 'reject') => {
+  const handleAction = async (action) => {
     if (!selected) return;
     setActioning(true);
     try {

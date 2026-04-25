@@ -48,7 +48,7 @@ export default function SchoolDetailPage() {
       })
       .catch(() => toast('Failed to load school', 'error'))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, toast]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -115,7 +115,7 @@ export default function SchoolDetailPage() {
           background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 'var(--radius)',
           padding: '0.875rem 1rem', marginBottom: '1rem', fontSize: '0.875rem', color: '#92400e',
         }}>
-          ⏳ Your application is under review. You'll be notified once approved.
+          ⏳ Your application is under review. You&apos;ll be notified once approved.
         </div>
       )}
 

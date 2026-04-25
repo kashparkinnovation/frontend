@@ -3,11 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import apiClient from '@/lib/api';
-import type { Order } from '@/types';
 
 export default function PrintOrderInvoicePage() {
   const { id } = useParams();
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -96,7 +95,7 @@ export default function PrintOrderInvoicePage() {
             </tr>
           </thead>
           <tbody>
-            {order.items?.map((item: any, idx: number) => (
+            {order.items?.map((item, idx) => (
               <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
                 <td style={{ padding: '1rem 0' }}>
                   <div style={{ fontWeight: 500, color: '#0f172a' }}>{item.product_name}</div>
