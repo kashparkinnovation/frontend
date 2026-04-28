@@ -14,6 +14,8 @@ interface AuthContextValue {
   login:              (email: string, password: string) => Promise<void>;
   loginWithOTP:       (idToken: string)                 => Promise<void>;
   loginWithEmailOTP:  (idToken: string)                 => Promise<void>;
+  /** Set session directly from token data — use after register to avoid re-login */
+  setSession:         (data: AuthTokens)                => void;
   logout:             ()                                => Promise<void>;
   updateUser:         (userData: User)                  => void;
 }
@@ -22,7 +24,7 @@ const ROLE_REDIRECTS: Record<UserRole, string> = {
   admin: '/admin', vendor: '/vendor', school: '/school', student: '/',
 };
 
-function saveSession(data: AuthTokens) {
+export function saveSession(data: AuthTokens) {
   Cookies.set('access_token', data.access,        { expires: 1 / 24 });
   Cookies.set('refresh_token', data.refresh,      { expires: 7 });
   Cookies.set('user', JSON.stringify(data.user),  { expires: 7 });
@@ -35,7 +37,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setLoading] = useState(true);
   const router                  = useRouter();
 
-  // Restore session from cookie on mount
   useEffect(() => {
     const stored = Cookies.get('user');
     if (stored) {
@@ -44,31 +45,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-  // ── Email + password login ──────────────────────────────────────────────────
+  // ── Set session + update in-memory state (use after register) ──────────────
+  const setSession = useCallback((data: AuthTokens) => {
+    saveSession(data);
+    setUser(data.user);
+  }, []);
+
+  // ── Email + password login ─────────────────────────────────────────────────
   const login = useCallback(async (email: string, password: string) => {
     const { data } = await apiClient.post<AuthTokens>('/auth/login/', { email, password });
-    saveSession(data);
-    setUser(data.user);
+    setSession(data);
     router.push(ROLE_REDIRECTS[data.user.role]);
-  }, [router]);
+  }, [router, setSession]);
 
-  // ── Phone SMS OTP login ─────────────────────────────────────────────────────
+  // ── Phone SMS OTP login ────────────────────────────────────────────────────
   const loginWithOTP = useCallback(async (idToken: string) => {
     const { data } = await apiClient.post<AuthTokens>('/auth/otp/login/', { id_token: idToken });
-    saveSession(data);
-    setUser(data.user);
+    setSession(data);
     router.push(ROLE_REDIRECTS[data.user.role]);
-  }, [router]);
+  }, [router, setSession]);
 
-  // ── Email magic-link OTP login ──────────────────────────────────────────────
+  // ── Email magic-link OTP login ─────────────────────────────────────────────
   const loginWithEmailOTP = useCallback(async (idToken: string) => {
     const { data } = await apiClient.post<AuthTokens>('/auth/otp/email-login/', { id_token: idToken });
-    saveSession(data);
-    setUser(data.user);
+    setSession(data);
     router.push(ROLE_REDIRECTS[data.user.role]);
-  }, [router]);
+  }, [router, setSession]);
 
-  // ── Logout ─────────────────────────────────────────────────────────────────
+  // ── Logout ────────────────────────────────────────────────────────────────
   const logout = useCallback(async () => {
     try {
       const refresh = Cookies.get('refresh_token');
@@ -90,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user, isLoading, isAuthenticated: !!user, role: user?.role ?? null,
-      login, loginWithOTP, loginWithEmailOTP, logout, updateUser,
+      login, loginWithOTP, loginWithEmailOTP, setSession, logout, updateUser,
     }}>
       {children}
     </AuthContext.Provider>

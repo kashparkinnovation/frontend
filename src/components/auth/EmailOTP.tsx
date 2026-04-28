@@ -10,34 +10,30 @@ import {
 import { auth } from '@/lib/firebase';
 
 interface EmailOTPProps {
-  /** Called with the Firebase ID token once the email link is verified */
   onVerified: (idToken: string) => void;
+  /** Called just before the sign-in link email is sent — use to store intent data in localStorage */
+  onBeforeSend?: () => void;
   buttonText?: string;
 }
 
-/**
- * Two-phase component:
- *  Phase 1 – user enters email → we send a magic-link OTP email via Firebase
- *  Phase 2 – user clicks the link in their inbox, lands back on the same page
- *             → we detect the link in the URL and silently finish sign-in
- */
-export default function EmailOTP({ onVerified, buttonText = 'Continue' }: EmailOTPProps) {
-  const [email, setEmail]       = useState('');
-  const [sent, setSent]         = useState(false);
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+export default function EmailOTP({ onVerified, onBeforeSend, buttonText = 'Continue' }: EmailOTPProps) {
+  const [email, setEmail]         = useState('');
+  const [sent, setSent]           = useState(false);
+  const [manualEmail, setManualEmail] = useState(''); // fallback for different-device scenario
+  const [needManual, setNeedManual]   = useState(false);
+  const [error, setError]         = useState('');
+  const [loading, setLoading]     = useState(false);
   const [verifying, setVerifying] = useState(false);
 
-  // ── Action-code settings ────────────────────────────────────────────────────
-  const actionCodeSettings: ActionCodeSettings = {
-    // After clicking the link, Firebase redirects here
+  // Redirect URL — always point to the dedicated verify page
+  const getActionCodeSettings = (): ActionCodeSettings => ({
     url: typeof window !== 'undefined'
       ? `${window.location.origin}/auth/email-verify`
       : 'http://localhost:3000/auth/email-verify',
     handleCodeInApp: true,
-  };
+  });
 
-  // ── Phase 1: send the sign-in link ─────────────────────────────────────────
+  // ── Phase 1: send the magic link ──────────────────────────────────────────
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -49,8 +45,9 @@ export default function EmailOTP({ onVerified, buttonText = 'Continue' }: EmailO
 
     setLoading(true);
     try {
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-      // Save the email locally so we can use it when the link is clicked
+      // Let parent store any intent data before we send
+      onBeforeSend?.();
+      await sendSignInLinkToEmail(auth, email, getActionCodeSettings());
       window.localStorage.setItem('emailForSignIn', email);
       setSent(true);
     } catch (err: any) {
@@ -60,23 +57,12 @@ export default function EmailOTP({ onVerified, buttonText = 'Continue' }: EmailO
     }
   };
 
-  // ── Phase 2: complete sign-in after clicking the email link ─────────────────
-  //    (Called manually when user says "I've clicked the link")
-  const handleVerifyLink = async () => {
-    setError('');
+  // ── Phase 2: complete sign-in (called from the "I've clicked it" button) ──
+  const completeSignIn = async (targetEmail: string) => {
     const href = window.location.href;
-
     if (!isSignInWithEmailLink(auth, href)) {
-      setError(
-        'No valid sign-in link found in your browser. ' +
-        'Please click the link directly from your email on this device.'
-      );
+      setError('No valid sign-in link found. Please open the link directly from your email on this device.');
       return;
-    }
-
-    let targetEmail = window.localStorage.getItem('emailForSignIn') || email;
-    if (!targetEmail) {
-      targetEmail = window.prompt('Please re-enter your email to confirm:') || '';
     }
 
     setVerifying(true);
@@ -86,22 +72,53 @@ export default function EmailOTP({ onVerified, buttonText = 'Continue' }: EmailO
       const idToken = await result.user.getIdToken();
       onVerified(idToken);
     } catch (err: any) {
-      setError(err.message || 'Email link verification failed. Try sending a new link.');
+      setError(err.message || 'Verification failed. Try sending a new link.');
     } finally {
       setVerifying(false);
     }
   };
 
-  // ── Auto-detect link on mount ───────────────────────────────────────────────
+  const handleVerifyClick = async () => {
+    setError('');
+    const savedEmail = window.localStorage.getItem('emailForSignIn') || email;
+    if (savedEmail) {
+      await completeSignIn(savedEmail);
+    } else {
+      // Different device — ask for email
+      setNeedManual(true);
+    }
+  };
+
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!manualEmail) { setError('Please enter your email address.'); return; }
+    await completeSignIn(manualEmail);
+  };
+
+  // ── Auto-detect sign-in link on mount (same-browser scenario) ─────────────
   React.useEffect(() => {
-    if (typeof window !== 'undefined' && isSignInWithEmailLink(auth, window.location.href)) {
-      const savedEmail = window.localStorage.getItem('emailForSignIn');
-      if (savedEmail) {
-        setEmail(savedEmail);
-        setSent(true);
-        // Trigger automatic verification
-        handleVerifyLink();
-      }
+    if (typeof window === 'undefined') return;
+    if (!isSignInWithEmailLink(auth, window.location.href)) return;
+
+    const savedEmail = window.localStorage.getItem('emailForSignIn');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setSent(true);
+      // Auto-complete
+      (async () => {
+        setVerifying(true);
+        try {
+          const result = await signInWithEmailLink(auth, savedEmail, window.location.href);
+          window.localStorage.removeItem('emailForSignIn');
+          const idToken = await result.user.getIdToken();
+          onVerified(idToken);
+        } catch (err: any) {
+          setError(err.message || 'Auto-verification failed. Please click "Verify" manually.');
+        } finally {
+          setVerifying(false);
+        }
+      })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -118,43 +135,42 @@ export default function EmailOTP({ onVerified, buttonText = 'Continue' }: EmailO
         </div>
       )}
 
+      {/* ── Phase 1: Email input ── */}
       {!sent ? (
-        /* ── Phase 1: Email input ── */
         <form onSubmit={handleSend} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-            <label
-              htmlFor="email-otp-input"
-              style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-primary, #374151)' }}
-            >
+            <label htmlFor="email-otp-input"
+              style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text-primary, #374151)' }}>
               Email address
             </label>
             <input
-              id="email-otp-input"
-              type="email"
-              placeholder="you@example.com"
-              className="input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
+              id="email-otp-input" type="email" placeholder="you@example.com"
+              className="input" value={email} onChange={(e) => setEmail(e.target.value)}
+              required autoComplete="email"
             />
             <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary, #6b7280)' }}>
-              We'll send a one-time magic link to your inbox
+              We&apos;ll send a one-time magic link to your inbox
             </span>
           </div>
-
-          <button
-            id="send-email-otp-btn"
-            type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%' }}
-            disabled={loading}
-          >
+          <button id="send-email-otp-btn" type="submit" className="btn btn-primary"
+            style={{ width: '100%' }} disabled={loading}>
             {loading ? 'Sending…' : '✉️  Send Magic Link'}
           </button>
         </form>
+
+      /* ── Phase 2: Waiting / manual verify ── */
+      ) : needManual ? (
+        <form onSubmit={handleManualSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <p style={{ fontSize: '0.875rem', color: '#374151', margin: 0 }}>
+            Please enter the email you used to receive the link:
+          </p>
+          <input type="email" className="input" placeholder="you@example.com"
+            value={manualEmail} onChange={(e) => setManualEmail(e.target.value)} required />
+          <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={verifying}>
+            {verifying ? 'Verifying…' : buttonText}
+          </button>
+        </form>
       ) : (
-        /* ── Phase 2: Waiting for user to click the link ── */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{
             background: '#eff6ff', border: '1px solid #bfdbfe',
@@ -166,30 +182,21 @@ export default function EmailOTP({ onVerified, buttonText = 'Continue' }: EmailO
             </p>
             <p style={{ margin: 0, fontSize: '0.875rem', color: '#374151' }}>
               We sent a sign-in link to <strong>{email}</strong>.
-              Open it on <strong>this device</strong> and click the link.
+              Open it <strong>on this device</strong> and click the link — you&apos;ll be signed in automatically.
             </p>
           </div>
 
-          <button
-            id="verify-email-link-btn"
-            type="button"
-            className="btn btn-primary"
-            style={{ width: '100%' }}
-            onClick={handleVerifyLink}
-            disabled={verifying}
-          >
-            {verifying ? 'Verifying…' : `${buttonText} after clicking the link`}
+          <button id="verify-email-link-btn" type="button" className="btn btn-primary"
+            style={{ width: '100%' }} onClick={handleVerifyClick} disabled={verifying}>
+            {verifying ? 'Verifying…' : `${buttonText} — I clicked the link`}
           </button>
 
-          <button
-            type="button"
-            onClick={() => { setSent(false); setError(''); }}
+          <button type="button"
+            onClick={() => { setSent(false); setError(''); setNeedManual(false); }}
             style={{
-              background: 'none', border: 'none',
-              color: 'var(--color-primary, #4f46e5)', fontSize: '0.875rem',
-              fontWeight: 500, cursor: 'pointer', textDecoration: 'underline',
-            }}
-          >
+              background: 'none', border: 'none', color: 'var(--color-primary, #4f46e5)',
+              fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer', textDecoration: 'underline',
+            }}>
             ← Change email / resend
           </button>
         </div>

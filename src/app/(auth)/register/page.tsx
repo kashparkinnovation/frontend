@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/api';
-import Cookies from 'js-cookie';
 import PhoneOTP from '@/components/auth/PhoneOTP';
 import EmailOTP from '@/components/auth/EmailOTP';
+import { useAuth } from '@/context/AuthContext';
 import type { AuthTokens } from '@/types';
 import styles from '../login/auth.module.css';
 
@@ -18,18 +18,9 @@ const TABS: { id: Method; label: string; icon: string }[] = [
   { id: 'email',    label: 'Email Link', icon: '✉️' },
 ];
 
-function saveAndRedirect(data: AuthTokens, router: ReturnType<typeof useRouter>) {
-  Cookies.set('access_token', data.access,        { expires: 1 / 24 });
-  Cookies.set('refresh_token', data.refresh,      { expires: 7 });
-  Cookies.set('user', JSON.stringify(data.user),  { expires: 7 });
-  const redirects: Record<string, string> = {
-    admin: '/admin', vendor: '/vendor', school: '/school', student: '/',
-  };
-  router.push(redirects[data.user.role] ?? '/');
-}
-
 export default function RegisterPage() {
   const router = useRouter();
+  const { setSession } = useAuth();
   const [method, setMethod]   = useState<Method>('password');
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
@@ -60,7 +51,8 @@ export default function RegisterPage() {
       const { data } = await apiClient.post<AuthTokens>('/auth/register/', {
         ...form, role: 'student',
       });
-      saveAndRedirect(data, router);
+      setSession(data);
+      router.push('/');
     } catch (err) { handleError(err); }
     finally { setLoading(false); }
   };
@@ -74,13 +66,11 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const { data } = await apiClient.post<AuthTokens>('/auth/otp/register/', {
-        id_token: idToken,
-        email:      form.email,
-        first_name: form.first_name,
-        last_name:  form.last_name,
-        role: 'student',
+        id_token: idToken, email: form.email,
+        first_name: form.first_name, last_name: form.last_name, role: 'student',
       });
-      saveAndRedirect(data, router);
+      setSession(data);
+      router.push('/');
     } catch (err) { handleError(err); }
     finally { setLoading(false); }
   };
@@ -94,14 +84,24 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const { data } = await apiClient.post<AuthTokens>('/auth/otp/email-register/', {
-        id_token:   idToken,
+        id_token: idToken,
         first_name: form.first_name,
         last_name:  form.last_name,
         role: 'student',
       });
-      saveAndRedirect(data, router);
+      setSession(data);
+      router.push('/');
     } catch (err) { handleError(err); }
     finally { setLoading(false); }
+  };
+
+  // Store signup intent before sending magic link so email-verify page knows what to do
+  const handleEmailBeforeSend = () => {
+    window.localStorage.setItem('emailSignupIntent', JSON.stringify({
+      first_name: form.first_name,
+      last_name:  form.last_name,
+      role: 'student',
+    }));
   };
 
   const nameFields = (
@@ -215,7 +215,11 @@ export default function RegisterPage() {
               <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>
                 Verify your email address
               </p>
-              <EmailOTP onVerified={handleEmailOTPVerified} buttonText="Register" />
+              <EmailOTP
+                onVerified={handleEmailOTPVerified}
+                onBeforeSend={handleEmailBeforeSend}
+                buttonText="Register"
+              />
             </div>
           </div>
         )}
