@@ -11,6 +11,7 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithOTP: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: User) => void;
   role: UserRole | null;
@@ -54,6 +55,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push(roleRedirects[data.user.role]);
   }, [router]);
 
+  const loginWithOTP = useCallback(async (idToken: string) => {
+    const { data } = await apiClient.post<AuthTokens>('/auth/otp/login/', { id_token: idToken });
+    Cookies.set('access_token', data.access, { expires: 1 / 24 });
+    Cookies.set('refresh_token', data.refresh, { expires: 7 });
+    Cookies.set('user', JSON.stringify(data.user), { expires: 7 });
+    setUser(data.user);
+
+    const roleRedirects: Record<UserRole, string> = {
+      admin: '/admin',
+      vendor: '/vendor',
+      school: '/school',
+      student: '/',
+    };
+    router.push(roleRedirects[data.user.role]);
+  }, [router]);
+
   const logout = useCallback(async () => {
     try {
       const refresh = Cookies.get('refresh_token');
@@ -81,6 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isAuthenticated: !!user,
         login,
+        loginWithOTP,
         logout,
         updateUser,
         role: user?.role ?? null,

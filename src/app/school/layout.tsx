@@ -13,6 +13,7 @@ const schoolNavItems = [
   { label: 'Bulk Orders',  href: '/school/orders/bulk',   icon: '📦' },
   { label: 'Distribution', href: '/school/distribution',  icon: '🔄' },
   { label: 'Profile',      href: '/school/profile',       icon: '🏫' },
+  { label: 'Vendor Requests', href: '/school/vendor-requests', icon: '🤝' },
 ];
 
 export default function SchoolLayout({ children }: { children: React.ReactNode }) {

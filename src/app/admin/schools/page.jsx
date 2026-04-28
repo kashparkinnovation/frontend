@@ -13,6 +13,36 @@ export default function AdminSchoolsPage() {
 
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
+  const [vendors, setVendors] = useState([]);
+  const [newVendorId, setNewVendorId] = useState('');
+
+  // Create state
+  const [showCreate, setShowCreate] = useState(false);
+  const [createData, setCreateData] = useState({
+    name: '', code: '', school_email: '', school_password: '',
+    address: '', city: '', state: '', pincode: '', contact_email: '', contact_phone: ''
+  });
+
+  useEffect(() => {
+    apiClient.get('/admin/vendors/')
+      .then(({ data }) => setVendors(Array.isArray(data) ? data : (data.results ?? [])))
+      .catch(console.error);
+  }, []);
+
+  const handleVendorChangeRequest = async (e) => {
+    e.preventDefault();
+    if (!selected || !newVendorId) return;
+    setSaving(true);
+    try {
+      await apiClient.post(`/schools/${selected.id}/request-vendor-change/`, { new_vendor: newVendorId });
+      alert('Vendor change request sent to school successfully!');
+      setNewVendorId('');
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Error requesting vendor change');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const fetchSchools = React.useCallback(() => {
     setLoading(true);
@@ -22,6 +52,22 @@ export default function AdminSchoolsPage() {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [filter]);
+
+  const handleCreateSchool = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await apiClient.post('/schools/admin-create/', createData);
+      alert('School created successfully!');
+      setShowCreate(false);
+      setCreateData({ name: '', code: '', school_email: '', school_password: '', address: '', city: '', state: '', pincode: '', contact_email: '', contact_phone: '' });
+      fetchSchools();
+    } catch (err) {
+      alert('Error creating school. Please verify unique code.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   useEffect(() => {
     fetchSchools();
@@ -114,7 +160,12 @@ export default function AdminSchoolsPage() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1 style={{ margin: '0 0 1.5rem', fontSize: '1.875rem', fontWeight: 800 }}>School Management</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h1 style={{ margin: 0, fontSize: '1.875rem', fontWeight: 800 }}>School Management</h1>
+        <button onClick={() => setShowCreate(true)} style={{ background: '#4f46e5', color: 'white', padding: '0.625rem 1.25rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+          + Add New School
+        </button>
+      </div>
 
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
         {tabs.map(t => (
@@ -220,13 +271,112 @@ export default function AdminSchoolsPage() {
               </button>
             </div>
 
-            <DrawerSection title="Account Information" />
-            <DrawerRow label="Admin Partner" value={selected.vendor_name || 'N/A'} />
+            <DrawerSection title="Account & Vendor Information" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#475569' }}>Current Vendor:</span>
+                <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a' }}>{selected.vendor_name || 'No Vendor Assigned'}</span>
+              </div>
+              
+              <div style={{ borderTop: '1px solid #e2e8f0', marginTop: '0.5rem', paddingTop: '0.5rem' }}>
+                <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '0.25rem' }}>Request Vendor Change</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <select 
+                    value={newVendorId} 
+                    onChange={e => setNewVendorId(e.target.value)} 
+                    style={{ flex: 1, padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                  >
+                    <option value="">Select Alternative Vendor...</option>
+                    {vendors.filter(v => v.id !== selected.vendor).map(v => (
+                      <option key={v.id} value={v.id}>{v.business_name}</option>
+                    ))}
+                  </select>
+                  <button 
+                    onClick={handleVendorChangeRequest} 
+                    disabled={!newVendorId || saving} 
+                    style={{ padding: '0.5rem 1rem', background: '#4f46e5', color: 'white', borderRadius: '6px', border: 'none', fontWeight: 600, fontSize: '0.8125rem', cursor: (saving || !newVendorId) ? 'not-allowed' : 'pointer', opacity: (saving || !newVendorId) ? 0.6 : 1 }}
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </div>
             <DrawerRow label="Unique Code" value={<span style={{ fontFamily: 'monospace' }}>{selected.code}</span>} />
             <DrawerRow label="Registered Date" value={new Date(selected.created_at).toLocaleDateString()} />
           </form>
         )}
       </Drawer>
+
+      {showCreate && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Create New School</h2>
+              <button onClick={() => setShowCreate(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
+            </div>
+            
+            <form onSubmit={handleCreateSchool} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>School Name</label>
+                  <input type="text" value={createData.name} onChange={e => setCreateData({...createData, name: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} required />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Unique Code</label>
+                  <input type="text" value={createData.code} onChange={e => setCreateData({...createData, code: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} required />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>School User Email</label>
+                  <input type="email" value={createData.school_email} onChange={e => setCreateData({...createData, school_email: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} required />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>School User Password</label>
+                  <input type="password" value={createData.school_password} onChange={e => setCreateData({...createData, school_password: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} required />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Contact Email</label>
+                  <input type="email" value={createData.contact_email} onChange={e => setCreateData({...createData, contact_email: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Contact Phone</label>
+                  <input type="text" value={createData.contact_phone} onChange={e => setCreateData({...createData, contact_phone: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Address</label>
+                <input type="text" value={createData.address} onChange={e => setCreateData({...createData, address: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>City</label>
+                  <input type="text" value={createData.city} onChange={e => setCreateData({...createData, city: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>State</label>
+                  <input type="text" value={createData.state} onChange={e => setCreateData({...createData, state: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Pincode</label>
+                <input type="text" value={createData.pincode} onChange={e => setCreateData({...createData, pincode: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+              </div>
+
+              <button type="submit" disabled={saving} style={{ marginTop: '1rem', padding: '0.875rem', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+                {saving ? 'Creating...' : 'Create School'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

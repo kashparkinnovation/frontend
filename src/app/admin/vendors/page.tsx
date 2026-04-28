@@ -29,8 +29,19 @@ export default function AdminVendorsPage() {
   const [editData, setEditData] = useState<any>({});
   const [saving, setSaving] = useState(false);
 
+  // Create state
+  const [showCreate, setShowCreate] = useState(false);
+  const [schools, setSchools] = useState<any[]>([]);
+  const [createData, setCreateData] = useState({
+    business_name: '', gst_number: '', vendor_email: '', vendor_password: '',
+    address: '', city: '', state: '', pincode: '', school_id: ''
+  });
+
   useEffect(() => {
     fetchVendors();
+    apiClient.get('/schools/')
+      .then(({ data }) => setSchools(Array.isArray(data) ? data : (data.results ?? [])))
+      .catch(console.error);
   }, []);
 
   const fetchVendors = () => {
@@ -38,6 +49,22 @@ export default function AdminVendorsPage() {
       .then(({ data }) => setVendors(Array.isArray(data) ? data : (data.results ?? [])))
       .catch(console.error)
       .finally(() => setLoading(false));
+  };
+
+  const handleCreateVendor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await apiClient.post('/admin/vendors/admin-create/', createData);
+      alert('Vendor created and assigned successfully!');
+      setShowCreate(false);
+      setCreateData({ business_name: '', gst_number: '', vendor_email: '', vendor_password: '', address: '', city: '', state: '', pincode: '', school_id: '' });
+      fetchVendors();
+    } catch (err) {
+      alert('Error creating vendor.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const updateStatus = async (id: number, approve: boolean, e?: React.MouseEvent) => {
@@ -107,7 +134,12 @@ export default function AdminVendorsPage() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1 style={{ margin: '0 0 2rem', fontSize: '1.875rem', fontWeight: 800 }}>Vendor Management</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h1 style={{ margin: 0, fontSize: '1.875rem', fontWeight: 800 }}>Vendor Management</h1>
+        <button onClick={() => setShowCreate(true)} style={{ background: '#4f46e5', color: 'white', padding: '0.625rem 1.25rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+          + Add New Vendor
+        </button>
+      </div>
       {loading ? <p>Loading...</p> : vendors.length === 0 ? (
         <div style={{ background: 'white', padding: '3rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
           <p style={{ color: '#64748b' }}>No vendors registered yet.</p>
@@ -202,6 +234,75 @@ export default function AdminVendorsPage() {
           </form>
         )}
       </Drawer>
+
+      {showCreate && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Create New Vendor</h2>
+              <button onClick={() => setShowCreate(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
+            </div>
+            
+            <form onSubmit={handleCreateVendor} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Business Name</label>
+                <input type="text" value={createData.business_name} onChange={e => setCreateData({...createData, business_name: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} required />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Assign to School</label>
+                <select value={createData.school_id} onChange={e => setCreateData({...createData, school_id: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} required>
+                  <option value="">-- Select Target School --</option>
+                  {schools.map((s: any) => (
+                    <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Vendor User Email</label>
+                  <input type="email" value={createData.vendor_email} onChange={e => setCreateData({...createData, vendor_email: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} required />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Vendor User Password</label>
+                  <input type="password" value={createData.vendor_password} onChange={e => setCreateData({...createData, vendor_password: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} required />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>GST Number</label>
+                <input type="text" value={createData.gst_number} onChange={e => setCreateData({...createData, gst_number: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontFamily: 'monospace' }} />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Address</label>
+                <input type="text" value={createData.address} onChange={e => setCreateData({...createData, address: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>City</label>
+                  <input type="text" value={createData.city} onChange={e => setCreateData({...createData, city: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>State</label>
+                  <input type="text" value={createData.state} onChange={e => setCreateData({...createData, state: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Pincode</label>
+                <input type="text" value={createData.pincode} onChange={e => setCreateData({...createData, pincode: e.target.value})} style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+              </div>
+
+              <button type="submit" disabled={saving} style={{ marginTop: '1rem', padding: '0.875rem', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>
+                {saving ? 'Creating...' : 'Create Vendor'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

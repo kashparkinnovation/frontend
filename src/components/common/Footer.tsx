@@ -22,7 +22,7 @@ export default function Footer() {
         
         {/* Links */}
         {[
-          { title: 'Platform', links: [['Browse Schools', '/browse'], ['How It Works', '/how-it-works'], ['Contact Us', '/contact'], ['About', '/about'], ['Blog', '/blog']] },
+          { title: 'Platform', links: [['Browse Schools', '/browse'], ['How It Works', '/how-it-works'], ['Become a Vendor', '/become-vendor'], ['Join Your School', '/join-school'], ['Contact Us', '/contact']] },
           { title: 'Portals', links: [['Student Login', '/login'], ['Vendor Portal', '/vendor'], ['School Portal', '/school'], ['Admin Panel', '/admin']] },
           { title: 'Support', links: [['Help Center', '/faq'], ['Return Policy', '/returns'], ['Terms & Conditions', '/terms'], ['Privacy Policy', '/privacy']] },
         ].map((col) => (
