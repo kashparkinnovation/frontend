@@ -148,8 +148,8 @@ export default function RegisterPage() {
   // ── Phone OTP registration ─────────────────────────────────────────────────
   const handlePhoneOTPVerified = async (idToken) => {
     setError("");
-    if (!form.email || !form.first_name || !form.last_name) {
-      setError("Please fill in your name and email above first.");
+    if (!form.first_name || !form.last_name) {
+      setError("Please fill in your name above first.");
       return;
     }
     setLoading(true);
@@ -297,7 +297,7 @@ export default function RegisterPage() {
           >
             {nameFields}
             <div className={styles.formGroup}>
-              <label className={styles.label}>Email address</label>
+              <label className={styles.label}>Email address (Optional)</label>
               <input
                 name="email"
                 type="email"
@@ -305,7 +305,6 @@ export default function RegisterPage() {
                 placeholder="you@example.com"
                 value={form.email}
                 onChange={handleChange}
-                required
               />
             </div>
             <div>

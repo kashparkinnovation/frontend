@@ -75,34 +75,10 @@ export default function Header() {
           </span>
         </Link>
         <nav style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Link
-            href="/browse"
-            style={{
-              fontSize: "0.875rem",
-              color: "#64748b",
-              fontWeight: 600,
-              textDecoration: "none",
-              padding: "0.5rem 0.875rem",
-              transition: "all 0.15s",
-            }}
-          >
-            Browse
-          </Link>
+
 
           {!isAuthenticated ? (
             <>
-              <Link
-                href="/login"
-                style={{
-                  fontSize: "0.875rem",
-                  color: "#64748b",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                  padding: "0.5rem 0.875rem",
-                }}
-              >
-                Sign In
-              </Link>
               <Link
                 href="/register"
                 style={{
@@ -122,38 +98,40 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link
-                href="/store/cart"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  background: "#f8fafc",
-                  border: "1px solid #e2e8f0",
-                  color: "#0f172a",
-                  fontWeight: 700,
-                  textDecoration: "none",
-                  padding: "0.5rem 1rem",
-                  borderRadius: "8px",
-                  fontSize: "0.875rem",
-                  marginLeft: "0.5rem",
-                }}
-              >
-                🛒 Cart{" "}
-                {totalItems > 0 && (
-                  <span
-                    style={{
-                      background: "#4f46e5",
-                      color: "white",
-                      padding: "0.1rem 0.4rem",
-                      borderRadius: "99px",
-                      fontSize: "0.75rem",
-                    }}
-                  >
-                    {totalItems}
-                  </span>
-                )}
-              </Link>
+              {role === "student" && (
+                <Link
+                  href="/store/cart"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    background: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    color: "#0f172a",
+                    fontWeight: 700,
+                    textDecoration: "none",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "8px",
+                    fontSize: "0.875rem",
+                    marginLeft: "0.5rem",
+                  }}
+                >
+                  🛒 Cart{" "}
+                  {totalItems > 0 && (
+                    <span
+                      style={{
+                        background: "#4f46e5",
+                        color: "white",
+                        padding: "0.1rem 0.4rem",
+                        borderRadius: "99px",
+                        fontSize: "0.75rem",
+                      }}
+                    >
+                      {totalItems}
+                    </span>
+                  )}
+                </Link>
+              )}
               <Link
                 href={portalLink()}
                 style={{
