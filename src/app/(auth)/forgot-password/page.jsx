@@ -1,0 +1,280 @@
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import apiClient from "@/lib/api";
+import PhoneOTP from "@/components/auth/PhoneOTP";
+import EmailOTP from "@/components/auth/EmailOTP";
+import styles from "../login/auth.module.css";
+
+export default function ForgotPasswordPage() {
+  const router = useRouter();
+  const [method, setMethod] = useState("phone");
+  const [idToken, setIdToken] = useState(null);
+  const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleOTPVerified = (token) => {
+    setIdToken(token);
+    setError("");
+  };
+
+  const handleReset = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (password !== password2) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const endpoint =
+        method === "phone"
+          ? "/auth/otp/forgot-password/"
+          : "/auth/otp/email-forgot-password/";
+      await apiClient.post(endpoint, {
+        id_token: idToken,
+        password,
+        password2,
+      });
+      setSuccess("Password updated! Redirecting to login…");
+      setTimeout(() => router.push("/login"), 2500);
+    } catch (err) {
+      const d = err?.response?.data;
+      setError(
+        typeof d === "object"
+          ? Object.values(d).flat().join(" ")
+          : "Reset failed.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const TAB_STYLE = (active) => ({
+    flex: 1,
+    background: "none",
+    border: "none",
+    fontWeight: 600,
+    fontSize: "0.85rem",
+    cursor: "pointer",
+    paddingBottom: "0.625rem",
+    paddingTop: "0.25rem",
+    color: active ? "var(--color-primary, #4f46e5)" : "#6b7280",
+    borderBottom: active
+      ? "2px solid var(--color-primary, #4f46e5)"
+      : "2px solid transparent",
+    marginBottom: "-2px",
+  });
+
+  return (
+    <div className={styles.authPage}>
+      <div className={styles.authCard}>
+        <div className={styles.logo}>
+          <span className={styles.logoIcon}>🎓</span>
+          <h1 className={styles.logoText}>eSchoolKart</h1>
+        </div>
+        <h2 className={styles.heading}>Reset password</h2>
+        <p className={styles.subheading}>
+          Verify your identity to set a new password
+        </p>
+
+        {error && <div className={styles.errorMsg}>{error}</div>}
+        {success && (
+          <div
+            style={{
+              background: "#d1fae5",
+              color: "#065f46",
+              fontSize: "0.875rem",
+              padding: "0.625rem 0.875rem",
+              borderRadius: "0.5rem",
+              border: "1px solid #a7f3d0",
+              marginBottom: "1rem",
+            }}
+          >
+            {success}
+          </div>
+        )}
+
+        {!idToken ? (
+          <>
+            {/* Method tabs */}
+            <div
+              style={{
+                display: "flex",
+                borderBottom: "2px solid #e5e7eb",
+                marginBottom: "1.5rem",
+              }}
+            >
+              <button
+                type="button"
+                id="tab-phone"
+                style={TAB_STYLE(method === "phone")}
+                onClick={() => {
+                  setMethod("phone");
+                  setError("");
+                }}
+              >
+                📱 Phone OTP
+              </button>
+              <button
+                type="button"
+                id="tab-email"
+                style={TAB_STYLE(method === "email")}
+                onClick={() => {
+                  setMethod("email");
+                  setError("");
+                }}
+              >
+                ✉️ Email Link
+              </button>
+            </div>
+
+            {method === "phone" && (
+              <>
+                <p
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "#4b5563",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  Enter your registered mobile number to receive an OTP.
+                </p>
+                <PhoneOTP
+                  onVerified={handleOTPVerified}
+                  buttonText="Verify Phone"
+                />
+              </>
+            )}
+
+            {method === "email" && (
+              <>
+                <p
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "#4b5563",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  Enter your registered email address to receive a reset link.
+                </p>
+                <EmailOTP
+                  onVerified={handleOTPVerified}
+                  buttonText="Verify Email"
+                />
+              </>
+            )}
+          </>
+        ) : (
+          /* New password form */
+          <form onSubmit={handleReset} className={styles.form}>
+            <p
+              style={{
+                fontSize: "0.875rem",
+                color: "#16a34a",
+                fontWeight: 600,
+                marginBottom: "0.5rem",
+              }}
+            >
+              ✓ Identity verified securely.
+            </p>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>New Password</label>
+              <div style={{ position: "relative" }}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="input"
+                  placeholder="Min 8 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: "absolute",
+                    right: "0.75rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#9ca3af",
+                    fontSize: "1rem",
+                    padding: "0.2rem",
+                  }}
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                </button>
+              </div>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Confirm New Password</label>
+              <div style={{ position: "relative" }}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="input"
+                  placeholder="••••••••"
+                  value={password2}
+                  onChange={(e) => setPassword2(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: "absolute",
+                    right: "0.75rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#9ca3af",
+                    fontSize: "1rem",
+                    padding: "0.2rem",
+                  }}
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                </button>
+              </div>
+            </div>
+
+            <button
+              id="reset-password-btn"
+              type="submit"
+              className="btn btn-primary"
+              style={{ width: "100%" }}
+              disabled={loading || !!success}
+            >
+              {loading ? "Updating…" : "Update Password"}
+            </button>
+          </form>
+        )}
+
+        <p className={styles.switchLink}>
+          Back to{" "}
+          <Link
+            href="/login"
+            style={{ color: "var(--color-primary)", fontWeight: 600 }}
+          >
+            Sign in
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
