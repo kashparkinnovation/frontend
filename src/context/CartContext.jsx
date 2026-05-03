@@ -67,7 +67,7 @@ export function CartProvider({ children }) {
         console.error("Failed to add item to cart", err);
       }
     },
-    [isAuthenticated, items, fetchCart],
+    [isAuthenticated, items, fetchCart, user],
   );
 
   const removeItem = useCallback(
@@ -82,7 +82,7 @@ export function CartProvider({ children }) {
         console.error("Failed to remove item", err);
       }
     },
-    [isAuthenticated, fetchCart],
+    [isAuthenticated, fetchCart, user],
   );
 
   const updateQuantity = useCallback(
@@ -98,7 +98,7 @@ export function CartProvider({ children }) {
         console.error("Failed to update quantity", err);
       }
     },
-    [isAuthenticated, fetchCart],
+    [isAuthenticated, fetchCart, user],
   );
 
   const clearCart = useCallback(async () => {
@@ -114,7 +114,7 @@ export function CartProvider({ children }) {
     } catch (err) {
       console.error("Failed to clear cart", err);
     }
-  }, [isAuthenticated, items]);
+  }, [isAuthenticated, items, user]);
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = items.reduce(
