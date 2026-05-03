@@ -37,6 +37,8 @@ export default function AdminVendorsPage() {
     address: '', city: '', state: '', pincode: '', school_id: ''
   });
 
+  const [search, setSearch] = useState('');
+
   useEffect(() => {
     fetchVendors();
     apiClient.get('/schools/')
@@ -44,12 +46,21 @@ export default function AdminVendorsPage() {
       .catch(console.error);
   }, []);
 
-  const fetchVendors = () => {
-    apiClient.get('/admin/vendors/')
+  const fetchVendors = React.useCallback(() => {
+    setLoading(true);
+    const qs = search ? `?search=${search}` : '';
+    apiClient.get(`/admin/vendors/${qs}`)
       .then(({ data }) => setVendors(Array.isArray(data) ? data : (data.results ?? [])))
       .catch(console.error)
       .finally(() => setLoading(false));
-  };
+  }, [search]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchVendors();
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [search, fetchVendors]);
 
   const handleCreateVendor = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,6 +131,16 @@ export default function AdminVendorsPage() {
     }
   };
 
+  const handleToggleUserActive = async () => {
+    if (!selected?.user) return;
+    try {
+      await apiClient.patch(`/auth/users/${selected.user}/toggle-active/`);
+      alert('Vendor user active status toggled successfully.');
+    } catch (err) {
+      alert('Failed to toggle user active status.');
+    }
+  };
+
   const openDrawer = (v: Vendor) => {
     setSelected(v);
     setEditData({
@@ -140,6 +161,17 @@ export default function AdminVendorsPage() {
           + Add New Vendor
         </button>
       </div>
+
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <input 
+          type="text" 
+          value={search}
+          placeholder="Search vendors..." 
+          onChange={(e) => setSearch(e.target.value)} 
+          style={{ padding: '0.625rem', borderRadius: '8px', border: '1px solid #cbd5e1', flex: 1, minWidth: '200px', maxWidth: '300px' }}
+        />
+      </div>
+
       {loading ? <p>Loading...</p> : vendors.length === 0 ? (
         <div style={{ background: 'white', padding: '3rem', borderRadius: '12px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
           <p style={{ color: '#64748b' }}>No vendors registered yet.</p>
@@ -188,6 +220,7 @@ export default function AdminVendorsPage() {
               {!selected.is_approved && <button type="button" onClick={() => updateStatus(selected.id, true)} style={{ padding: '0.625rem 1rem', background: '#22c55e', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', flex: 1 }}>Approve Vendor</button>}
               {selected.is_approved && <button type="button" onClick={() => updateStatus(selected.id, false)} style={{ padding: '0.625rem 1rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', flex: 1 }}>Revoke Access</button>}
               <button type="button" onClick={handleDelegateLogin} style={{ padding: '0.625rem 1rem', background: '#0f172a', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', flex: 1 }}>Login As Vendor ⚡</button>
+              <button type="button" onClick={handleToggleUserActive} style={{ padding: '0.625rem 1rem', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', flex: 1 }}>Toggle Active Status</button>
             </div>
 
             <DrawerSection title="Edit Details" />

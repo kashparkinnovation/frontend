@@ -40,13 +40,16 @@ export default function AdminUsersPage() {
     can_manage_reports: false,
   });
 
+  const [search, setSearch] = useState('');
+
   useEffect(() => {
     fetchAdmins();
-  }, []);
+  }, [search]);
 
   const fetchAdmins = () => {
     const token = Cookies.get('access_token');
-    fetch(`${API_URL}/auth/admins/`, {
+    const qs = search ? `?search=${search}` : '';
+    fetch(`${API_URL}/auth/admins/${qs}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(r => r.json())
@@ -115,6 +118,16 @@ export default function AdminUsersPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1 style={{ margin: 0, fontSize: '1.875rem', fontWeight: 800 }}>Admin Profiles & Roles</h1>
         <button onClick={openNew} style={{ background: '#4f46e5', color: 'white', padding: '0.625rem 1.25rem', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>+ Add Sub-Admin</button>
+      </div>
+
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <input 
+          type="text" 
+          value={search}
+          placeholder="Search sub-admins..." 
+          onChange={(e) => setSearch(e.target.value)} 
+          style={{ padding: '0.625rem', borderRadius: '8px', border: '1px solid #e2e8f0', flex: 1, minWidth: '200px', maxWidth: '300px' }}
+        />
       </div>
 
       {loading ? <p>Loading admins...</p> : (

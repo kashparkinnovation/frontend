@@ -25,7 +25,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1);
   const [placing, setPlacing] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState('upi');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
 
   const [shipping, setShipping] = useState({
     name: `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim(),
@@ -176,7 +176,7 @@ export default function CheckoutPage() {
                   {inp('phone', 'Phone Number', '+91 XXXXX XXXXX')}
                 </div>
                 <div style={{ background: '#f0fdf4', borderRadius: '10px', padding: '0.875rem 1rem', fontSize: '0.8125rem', color: '#166534', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  📦 <span>Uniforms will be <strong>delivered to your school</strong>, not this address. This is used for contact purposes only.</span>
+                  📦 <span>Your contact details are used for order coordination.</span>
                 </div>
                 <button type="submit" style={{ padding: '1rem', background: 'linear-gradient(135deg, var(--mat-primary), #7c3aed)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 6px 20px rgba(79,70,229,0.3)', fontFamily: 'var(--font-sans)', transition: 'all 0.2s' }}>
                   Continue to Review →
@@ -236,10 +236,7 @@ export default function CheckoutPage() {
 
               <div style={{ background: 'white', borderRadius: '20px', border: '1px solid var(--mat-border)', padding: '1.75rem', boxShadow: 'var(--mat-shadow-1)', marginBottom: '1.25rem' }}>
                 {[
-                  { id: 'upi', icon: '📱', label: 'UPI / Google Pay / PhonePe', sub: 'Instant payment' },
-                  { id: 'card', icon: '💳', label: 'Credit / Debit Card', sub: 'Visa, Mastercard, RuPay' },
-                  { id: 'banking', icon: '🏦', label: 'Net Banking', sub: 'All major banks' },
-                  { id: 'cod', icon: '💵', label: 'Cash on Delivery', sub: 'Pay when collected at school' },
+                  { id: 'cod', icon: '💵', label: 'Pay at School', sub: 'Pay when collected at school' },
                 ].map((method) => (
                   <label key={method.id} onClick={() => setPaymentMethod(method.id)} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', borderRadius: '12px', border: `2px solid ${paymentMethod === method.id ? 'var(--mat-primary)' : 'transparent'}`, marginBottom: '0.75rem', cursor: 'pointer', background: paymentMethod === method.id ? 'var(--mat-primary-light)' : 'transparent', transition: 'all 0.15s' }}>
                     <input type="radio" name="payment" checked={paymentMethod === method.id} onChange={() => setPaymentMethod(method.id)} style={{ accentColor: 'var(--mat-primary)' }} />

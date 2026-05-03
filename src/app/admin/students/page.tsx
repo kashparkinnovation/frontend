@@ -30,20 +30,39 @@ export default function AdminVerificationQueuePage() {
   
   const [reviewNote, setReviewNote] = useState('');
   const [actioning, setActioning] = useState(false);
+  const [schools, setSchools] = useState<any[]>([]);
+  const [newSchoolId, setNewSchoolId] = useState('');
+  const [changingSchool, setChangingSchool] = useState(false);
+
+  const [search, setSearch] = useState('');
 
   const fetchQueue = React.useCallback(async () => {
     setLoading(true);
+    let params = [];
+    if (filter) params.push(`status=${filter}`);
+    if (search) params.push(`search=${search}`);
+    const qs = params.length > 0 ? `?${params.join('&')}` : '';
+
     try {
-      const { data } = await apiClient.get(`/students/admin/verification-requests/?status=${filter}`);
+      const { data } = await apiClient.get(`/students/admin/verification-requests/${qs}`);
       setRequests(Array.isArray(data) ? data : (data.results ?? []));
     } catch (err) {
       console.error('Failed to load queue', err);
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, search]);
 
-  useEffect(() => { fetchQueue(); }, [filter, fetchQueue]);
+  useEffect(() => { 
+    const timer = setTimeout(() => {
+      fetchQueue(); 
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [filter, search, fetchQueue]);
+
+  useEffect(() => {
+    apiClient.get('/admin/schools/').then(r => setSchools(r.data.results ?? r.data)).catch(console.error);
+  }, []);
 
   const openDrawer = (req: VerificationRequest) => {
     setSelected(req);
@@ -62,6 +81,21 @@ export default function AdminVerificationQueuePage() {
       alert('Action failed');
     } finally {
       setActioning(false);
+    }
+  };
+
+  const handleChangeSchool = async () => {
+    if (!selected || !newSchoolId) return;
+    setChangingSchool(true);
+    try {
+      await apiClient.patch(`/students/admin/school-change/${selected.student.id}/`, { school_id: newSchoolId });
+      alert('School changed successfully! Note: Verification status has been reset.');
+      setSelected(null);
+      fetchQueue();
+    } catch {
+      alert('Failed to change school');
+    } finally {
+      setChangingSchool(false);
     }
   };
 
@@ -86,6 +120,16 @@ export default function AdminVerificationQueuePage() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <input 
+          type="text" 
+          value={search}
+          placeholder="Search students..." 
+          onChange={(e) => setSearch(e.target.value)} 
+          style={{ padding: '0.625rem', borderRadius: '8px', border: '1px solid #cbd5e1', flex: 1, minWidth: '200px', maxWidth: '300px' }}
+        />
       </div>
 
       <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
@@ -219,6 +263,30 @@ export default function AdminVerificationQueuePage() {
               <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
                 <strong>Note:</strong> As an admin, you have oversight authority to bypass the school&apos;s queue and directly approve or reject a student verification yourself.
               </p>
+            </div>
+
+            <DrawerSection title="Admin Tools: Change School" />
+            <div style={{ padding: '1rem', background: '#fff1f2', borderRadius: '8px', border: '1px solid #fecdd3' }}>
+              <p style={{ margin: '0 0 1rem', fontSize: '0.875rem', color: '#be123c' }}>
+                WARNING: Changing a student&apos;s school will reset their verification status to pending and delete their current verification requests.
+              </p>
+              <select
+                value={newSchoolId}
+                onChange={(e) => setNewSchoolId(e.target.value)}
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #fecdd3', borderRadius: '6px', fontSize: '0.875rem', marginBottom: '1rem' }}
+              >
+                <option value="">Select New School...</option>
+                {schools.map(s => (
+                  <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
+                ))}
+              </select>
+              <button
+                onClick={handleChangeSchool}
+                disabled={changingSchool || !newSchoolId}
+                style={{ width: '100%', padding: '0.75rem', background: '#e11d48', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: changingSchool || !newSchoolId ? 'not-allowed' : 'pointer', opacity: changingSchool || !newSchoolId ? 0.7 : 1 }}
+              >
+                {changingSchool ? 'Changing...' : 'Change School'}
+              </button>
             </div>
           </>
         )}

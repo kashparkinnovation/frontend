@@ -65,14 +65,6 @@ export default function ShopPage() {
 
   const canOrder = activeStudent?.school === Number(schoolId) && activeStudent?.is_verified;
 
-  const quickAdd = (product: Product) => {
-    if (!canOrder) { showToast('Select a verified student for this school first', 'error'); return; }
-    const firstVariant = product.inventory.find((i) => i.quantity > 0);
-    if (!firstVariant) { showToast('Out of stock', 'error'); return; }
-    addItem({ productId: product.id, inventoryId: firstVariant.id, productName: product.name, size: firstVariant.size, color: firstVariant.color, quantity: 1, unitPrice: parseFloat(firstVariant.effective_price), schoolId: Number(schoolId) });
-    showToast(`${product.name} added to cart`, 'success');
-  };
-
   if (loading) return <div style={{ textAlign: 'center', padding: '4rem', color: '#94a3b8' }}>Loading shop…</div>;
 
   return (
@@ -167,12 +159,6 @@ export default function ShopPage() {
                     </div>
                   </div>
                 </Link>
-                <div style={{ padding: '0 1rem 1rem' }}>
-                  <button onClick={() => quickAdd(p)} disabled={totalStock === 0 || !canOrder}
-                    style={{ width: '100%', padding: '0.5rem', background: (totalStock === 0 || !canOrder) ? '#f1f5f9' : '#4f46e5', color: (totalStock === 0 || !canOrder) ? '#94a3b8' : 'white', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.8125rem', cursor: (totalStock === 0 || !canOrder) ? 'not-allowed' : 'pointer', transition: 'all 0.15s', fontFamily: 'inherit' }}>
-                    {totalStock === 0 ? 'Out of Stock' : !canOrder ? 'Verify to Order' : '+ Quick Add'}
-                  </button>
-                </div>
               </div>
             );
           })}

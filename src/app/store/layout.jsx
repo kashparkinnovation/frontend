@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useStudent } from '@/context/StudentContext';
-import { useCart } from '@/context/CartContext';
+import { useCart, CartProvider } from '@/context/CartContext';
 import apiClient from '@/lib/api';
+import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 
 export default function StoreLayout({ children }) {
+  useIdleTimeout();
   const { isAuthenticated, isLoading: authLoading, logout, user } = useAuth();
   const { students, activeStudent, setActiveStudent, setStudents, refreshNeeded } = useStudent();
   const { totalItems } = useCart();

@@ -10,21 +10,26 @@ import { useAuth } from '@/context/AuthContext';
 import type { AuthTokens } from '@/types';
 import styles from '../login/auth.module.css';
 
-type Method = 'password' | 'phone' | 'email';
+type Method = 'phone' | 'password' | 'email';
 
+// ── Tab order: Phone OTP → Password → Email Link ────────────────────────────
 const TABS: { id: Method; label: string; icon: string }[] = [
-  { id: 'password', label: 'Password',   icon: '🔑' },
   { id: 'phone',    label: 'Phone OTP',  icon: '📱' },
+  { id: 'password', label: 'Password',   icon: '🔑' },
   { id: 'email',    label: 'Email Link', icon: '✉️' },
 ];
+
+type PwStep = 'details' | 'verify-otp';
 
 export default function RegisterPage() {
   const router = useRouter();
   const { setSession } = useAuth();
-  const [method, setMethod]   = useState<Method>('password');
+  const [method, setMethod]   = useState<Method>('phone');
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
+  // ── Shared form state ──────────────────────────────────────────────────────
   const [form, setForm] = useState({
     email: '', first_name: '', last_name: '',
     password: '', password2: '',
@@ -32,27 +37,72 @@ export default function RegisterPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
+  // ── Password-flow OTP state ────────────────────────────────────────────────
+  const [pwStep, setPwStep] = useState<PwStep>('details');
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
   const handleError = (err: any) => {
     const d = err?.response?.data;
-    if (typeof d === 'object') {
-      setError(Object.values(d).flat().join(' '));
-    } else {
-      setError('Registration failed. Please try again.');
-    }
+    if (typeof d === 'object') setError(Object.values(d).flat().join(' '));
+    else setError('Registration failed. Please try again.');
   };
 
-  // ── Password registration ──────────────────────────────────────────────────
+  // ── Step 1: validate form + send OTP to email ──────────────────────────────
+  const handleSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!form.first_name || !form.last_name) { setError('Please enter your full name.'); return; }
+    if (!form.email)    { setError('Please enter your email address.'); return; }
+    if (!form.password) { setError('Please enter a password.'); return; }
+    if (form.password.length < 8) { setError('Password must be at least 8 characters.'); return; }
+    if (form.password !== form.password2) { setError('Passwords do not match.'); return; }
+
+    setLoading(true);
+    try {
+      await apiClient.post('/auth/email-otp/send/', { email: form.email });
+      setOtpSent(true);
+      setPwStep('verify-otp');
+      // 60s resend cooldown
+      setResendCooldown(60);
+      const t = setInterval(() => {
+        setResendCooldown((n) => { if (n <= 1) { clearInterval(t); return 0; } return n - 1; });
+      }, 1000);
+    } catch (err) { handleError(err); }
+    finally { setLoading(false); }
+  };
+
+  const handleResendOTP = async () => {
+    if (resendCooldown > 0) return;
+    setError(''); setLoading(true);
+    try {
+      await apiClient.post('/auth/email-otp/send/', { email: form.email });
+      setOtpCode('');
+      setResendCooldown(60);
+      const t = setInterval(() => {
+        setResendCooldown((n) => { if (n <= 1) { clearInterval(t); return 0; } return n - 1; });
+      }, 1000);
+    } catch (err) { handleError(err); }
+    finally { setLoading(false); }
+  };
+
+  // ── Step 2: verify OTP + register ─────────────────────────────────────────
   const handlePasswordRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (form.password !== form.password2) { setError('Passwords do not match.'); return; }
+    if (otpCode.length !== 6) { setError('Please enter the 6-digit OTP from your email.'); return; }
     setLoading(true);
     try {
-      const { data } = await apiClient.post<AuthTokens>('/auth/register/', {
-        ...form, role: 'student',
+      const { data } = await apiClient.post<AuthTokens>('/auth/email-otp/register/', {
+        email:      form.email,
+        first_name: form.first_name,
+        last_name:  form.last_name,
+        password:   form.password,
+        email_otp:  otpCode,
       });
       setSession(data);
-      router.push('/');
+      router.push('/store');
     } catch (err) { handleError(err); }
     finally { setLoading(false); }
   };
@@ -70,12 +120,12 @@ export default function RegisterPage() {
         first_name: form.first_name, last_name: form.last_name, role: 'student',
       });
       setSession(data);
-      router.push('/');
+      router.push('/store');
     } catch (err) { handleError(err); }
     finally { setLoading(false); }
   };
 
-  // ── Email OTP registration ─────────────────────────────────────────────────
+  // ── Email link registration ────────────────────────────────────────────────
   const handleEmailOTPVerified = async (idToken: string) => {
     setError('');
     if (!form.first_name || !form.last_name) {
@@ -84,23 +134,18 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const { data } = await apiClient.post<AuthTokens>('/auth/otp/email-register/', {
-        id_token: idToken,
-        first_name: form.first_name,
-        last_name:  form.last_name,
-        role: 'student',
+        id_token: idToken, first_name: form.first_name,
+        last_name: form.last_name, role: 'student',
       });
       setSession(data);
-      router.push('/');
+      router.push('/store');
     } catch (err) { handleError(err); }
     finally { setLoading(false); }
   };
 
-  // Store signup intent before sending magic link so email-verify page knows what to do
   const handleEmailBeforeSend = () => {
     window.localStorage.setItem('emailSignupIntent', JSON.stringify({
-      first_name: form.first_name,
-      last_name:  form.last_name,
-      role: 'student',
+      first_name: form.first_name, last_name: form.last_name, role: 'student',
     }));
   };
 
@@ -122,7 +167,6 @@ export default function RegisterPage() {
   return (
     <div className={styles.authPage}>
       <div className={styles.authCard}>
-        {/* Logo */}
         <div className={styles.logo}>
           <span className={styles.logoIcon}>🎓</span>
           <h1 className={styles.logoText}>eSchoolKart</h1>
@@ -130,63 +174,27 @@ export default function RegisterPage() {
         <h2 className={styles.heading}>Create account</h2>
         <p className={styles.subheading}>Join as a Parent / Student</p>
 
-        {/* 3-tab selector */}
-        <div style={{
-          display: 'flex', borderBottom: '2px solid #e5e7eb',
-          marginBottom: '1.5rem',
-        }}>
+        {/* ── Tab selector ── */}
+        <div style={{ display: 'flex', borderBottom: '2px solid #e5e7eb', marginBottom: '1.5rem' }}>
           {TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              id={`tab-${t.id}`}
-              onClick={() => { setMethod(t.id); setError(''); }}
+            <button key={t.id} type="button" id={`tab-${t.id}`}
+              onClick={() => { setMethod(t.id); setError(''); setPwStep('details'); setOtpCode(''); }}
               style={{
                 flex: 1, background: 'none', border: 'none',
-                fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer',
+                fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer',
                 paddingBottom: '0.625rem', paddingTop: '0.25rem',
                 color: method === t.id ? 'var(--color-primary, #4f46e5)' : '#6b7280',
                 borderBottom: method === t.id
                   ? '2px solid var(--color-primary, #4f46e5)' : '2px solid transparent',
                 marginBottom: '-2px', whiteSpace: 'nowrap',
                 transition: 'color 0.15s, border-color 0.15s',
-              }}
-            >
+              }}>
               {t.icon} {t.label}
             </button>
           ))}
         </div>
 
         {error && <div className={styles.errorMsg}>{error}</div>}
-
-        {/* ── Password ── */}
-        {method === 'password' && (
-          <form onSubmit={handlePasswordRegister} className={styles.form}>
-            {nameFields}
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Email address</label>
-              <input name="email" type="email" className="input"
-                placeholder="you@example.com" value={form.email}
-                onChange={handleChange} required />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Password</label>
-              <input name="password" type="password" className="input"
-                placeholder="Min 8 characters" value={form.password}
-                onChange={handleChange} required />
-            </div>
-            <div className={styles.formGroup}>
-              <label className={styles.label}>Confirm Password</label>
-              <input name="password2" type="password" className="input"
-                placeholder="••••••••" value={form.password2}
-                onChange={handleChange} required />
-            </div>
-            <button id="register-btn" type="submit" className="btn btn-primary"
-              style={{ width: '100%' }} disabled={loading}>
-              {loading ? 'Creating account…' : 'Create Account'}
-            </button>
-          </form>
-        )}
 
         {/* ── Phone OTP ── */}
         {method === 'phone' && (
@@ -195,8 +203,7 @@ export default function RegisterPage() {
             <div className={styles.formGroup}>
               <label className={styles.label}>Email address</label>
               <input name="email" type="email" className="input"
-                placeholder="you@example.com" value={form.email}
-                onChange={handleChange} required />
+                placeholder="you@example.com" value={form.email} onChange={handleChange} required />
             </div>
             <div>
               <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>
@@ -207,7 +214,115 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* ── Email magic-link OTP ── */}
+        {/* ── Password + Email OTP ── */}
+        {method === 'password' && pwStep === 'details' && (
+          <form onSubmit={handleSendOTP} className={styles.form}>
+            {nameFields}
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Email address</label>
+              <input name="email" type="email" className="input"
+                placeholder="you@example.com" value={form.email} onChange={handleChange} required />
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Password</label>
+              <div style={{ position: 'relative' }}>
+                <input name="password" type={showPassword ? 'text' : 'password'} className="input"
+                  placeholder="Min 8 characters" value={form.password} onChange={handleChange} required />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af',
+                    fontSize: '1rem', padding: '0.2rem'
+                  }}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
+            </div>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Confirm Password</label>
+              <div style={{ position: 'relative' }}>
+                <input name="password2" type={showPassword ? 'text' : 'password'} className="input"
+                  placeholder="••••••••" value={form.password2} onChange={handleChange} required />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af',
+                    fontSize: '1rem', padding: '0.2rem'
+                  }}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
+            </div>
+            <button id="send-otp-btn" type="submit" className="btn btn-primary"
+              style={{ width: '100%' }} disabled={loading}>
+              {loading ? 'Sending OTP…' : '✉️ Send Verification OTP'}
+            </button>
+          </form>
+        )}
+
+        {method === 'password' && pwStep === 'verify-otp' && (
+          <form onSubmit={handlePasswordRegister} className={styles.form}>
+            <div style={{
+              background: '#eff6ff', border: '1px solid #bfdbfe',
+              borderRadius: '0.5rem', padding: '0.875rem', marginBottom: '0.5rem',
+            }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: '#1e40af', fontWeight: 600 }}>
+                📧 OTP sent to {form.email}
+              </p>
+              <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem', color: '#374151' }}>
+                Check your inbox (and spam folder). Valid for 10 minutes.
+              </p>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Enter 6-digit OTP</label>
+              <input
+                id="otp-code-input"
+                type="text" inputMode="numeric" maxLength={6}
+                className="input"
+                placeholder="● ● ● ● ● ●"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                required
+                style={{ textAlign: 'center', letterSpacing: '0.4rem', fontSize: '1.4rem', fontWeight: 700 }}
+              />
+            </div>
+
+            <button id="register-btn" type="submit" className="btn btn-primary"
+              style={{ width: '100%' }} disabled={loading || otpCode.length < 6}>
+              {loading ? 'Creating account…' : 'Create Account'}
+            </button>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button type="button"
+                onClick={() => { setPwStep('details'); setOtpCode(''); setError(''); }}
+                style={{ background: 'none', border: 'none', color: 'var(--color-primary, #4f46e5)',
+                  fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', textDecoration: 'underline' }}>
+                ← Change details
+              </button>
+              <button type="button" onClick={handleResendOTP}
+                disabled={resendCooldown > 0 || loading}
+                style={{ background: 'none', border: 'none',
+                  color: resendCooldown > 0 ? '#9ca3af' : 'var(--color-primary, #4f46e5)',
+                  fontSize: '0.8rem', fontWeight: 500, cursor: resendCooldown > 0 ? 'default' : 'pointer',
+                  textDecoration: 'underline' }}>
+                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend OTP'}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* ── Email magic-link ── */}
         {method === 'email' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {nameFields}
@@ -215,20 +330,15 @@ export default function RegisterPage() {
               <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem' }}>
                 Verify your email address
               </p>
-              <EmailOTP
-                onVerified={handleEmailOTPVerified}
-                onBeforeSend={handleEmailBeforeSend}
-                buttonText="Register"
-              />
+              <EmailOTP onVerified={handleEmailOTPVerified}
+                onBeforeSend={handleEmailBeforeSend} buttonText="Register" />
             </div>
           </div>
         )}
 
         <p className={styles.switchLink}>
           Already have an account?{' '}
-          <Link href="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
-            Sign in
-          </Link>
+          <Link href="/login" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Sign in</Link>
         </p>
       </div>
     </div>

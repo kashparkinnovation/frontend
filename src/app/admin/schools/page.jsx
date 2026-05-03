@@ -44,14 +44,27 @@ export default function AdminSchoolsPage() {
     }
   };
 
+  const [search, setSearch] = useState('');
+
   const fetchSchools = React.useCallback(() => {
     setLoading(true);
-    const params = filter ? `?approval_status=${filter}` : '';
-    apiClient.get(`/schools/${params}`)
+    let params = [];
+    if (filter) params.push(`approval_status=${filter}`);
+    if (search) params.push(`search=${search}`);
+    const qs = params.length > 0 ? `?${params.join('&')}` : '';
+    
+    apiClient.get(`/schools/${qs}`)
       .then(({ data }) => setSchools(Array.isArray(data) ? data : (data.results ?? [])))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [filter]);
+  }, [filter, search]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchSchools();
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [filter, search, fetchSchools]);
 
   const handleCreateSchool = async (e) => {
     e.preventDefault();
@@ -68,10 +81,6 @@ export default function AdminSchoolsPage() {
       setSaving(false);
     }
   };
-
-  useEffect(() => {
-    fetchSchools();
-  }, [fetchSchools]);
 
   const updateStatus = async (id, action, e) => {
     if (e) e.stopPropagation();
@@ -130,6 +139,16 @@ export default function AdminSchoolsPage() {
     }
   };
 
+  const handleToggleUserActive = async () => {
+    if (!selected?.school_user) return;
+    try {
+      await apiClient.patch(`/auth/users/${selected.school_user}/toggle-active/`);
+      alert('School user active status toggled successfully.');
+    } catch (err) {
+      alert('Failed to toggle user active status.');
+    }
+  };
+
   const openDrawer = (s) => {
     setSelected(s);
     setEditData({
@@ -167,12 +186,21 @@ export default function AdminSchoolsPage() {
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-        {tabs.map(t => (
-          <button key={t.key} onClick={() => setFilter(t.key)} style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: filter === t.key ? '#4f46e5' : 'white', color: filter === t.key ? 'white' : '#475569', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer' }}>
-            {t.label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {tabs.map(t => (
+            <button key={t.key} onClick={() => setFilter(t.key)} style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: filter === t.key ? '#4f46e5' : 'white', color: filter === t.key ? 'white' : '#475569', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer' }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <input 
+          type="text" 
+          value={search}
+          placeholder="Search schools..." 
+          onChange={(e) => setSearch(e.target.value)} 
+          style={{ padding: '0.625rem', borderRadius: '8px', border: '1px solid #cbd5e1', flex: 1, minWidth: '200px', maxWidth: '300px' }}
+        />
       </div>
 
       {loading ? <p>Loading...</p> : schools.length === 0 ? (
@@ -226,6 +254,7 @@ export default function AdminSchoolsPage() {
               {selected.approval_status !== 'approved' && <button type="button" onClick={() => updateStatus(selected.id, 'approved')} style={{ padding: '0.625rem 1rem', background: '#22c55e', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', flex: 1 }}>Approve School</button>}
               {selected.approval_status !== 'rejected' && <button type="button" onClick={() => updateStatus(selected.id, 'rejected')} style={{ padding: '0.625rem 1rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', flex: 1 }}>Reject/Suspend</button>}
               <button type="button" onClick={handleDelegateLogin} style={{ padding: '0.625rem 1rem', background: '#0f172a', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', flex: 1 }}>Login As School ⚡</button>
+              <button type="button" onClick={handleToggleUserActive} style={{ padding: '0.625rem 1rem', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', flex: 1 }}>Toggle Active Status</button>
             </div>
 
             <DrawerSection title="Edit Details" />

@@ -3,13 +3,27 @@
 .portalContainer {
   display: flex;
   min-height: 100vh;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .portalContainer {
+    flex-direction: row;
+  }
 }
 
 .portalMain {
   flex: 1;
-  padding: 2rem;
+  padding: 1rem;
   overflow-y: auto;
   max-height: 100vh;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .portalMain {
+    padding: 2rem;
+  }
 }
 
 .loadingScreen {

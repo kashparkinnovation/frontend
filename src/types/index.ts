@@ -162,6 +162,7 @@ export interface Product {
   images: ProductImage[];
   primary_image_url: string | null;
   is_active: boolean;
+  school_commission_percent?: number | string | null;
   inventory: ProductInventory[];
   created_at: string;
   updated_at: string;

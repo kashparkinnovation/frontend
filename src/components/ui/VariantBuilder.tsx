@@ -8,6 +8,7 @@ interface VariantRow {
   size: string;
   color: string;
   price_override: string;
+  school_commission_percent: string;
   quantity: number;
   _delete?: boolean;
 }
@@ -24,7 +25,7 @@ export default function VariantBuilder({ variants, onChange, basePrice }: Varian
   const activeVariants = variants.filter((v) => !v._delete);
 
   const addRow = () => {
-    onChange([...variants, { size: '', color: '', price_override: '', quantity: 0 }]);
+    onChange([...variants, { size: '', color: '', price_override: '', school_commission_percent: '', quantity: 0 }]);
   };
 
   const updateRow = (index: number, field: keyof VariantRow, value: string | number) => {
@@ -46,7 +47,7 @@ export default function VariantBuilder({ variants, onChange, basePrice }: Varian
     const existing = new Set(variants.map((v) => `${v.size}::${v.color}`));
     const newRows = sizes
       .filter((s) => !existing.has(`${s}::`))
-      .map((s) => ({ size: s, color: '', price_override: '', quantity: 0 }));
+      .map((s) => ({ size: s, color: '', price_override: '', school_commission_percent: '', quantity: 0 }));
     onChange([...variants, ...newRows]);
   };
 
@@ -78,6 +79,7 @@ export default function VariantBuilder({ variants, onChange, basePrice }: Varian
               <th>Size <span style={{ color: 'var(--color-danger)' }}>*</span></th>
               <th>Color</th>
               <th>Price Override (₹)</th>
+              <th>School Comm. (%)</th>
               <th>Quantity <span style={{ color: 'var(--color-danger)' }}>*</span></th>
               <th></th>
             </tr>
@@ -125,6 +127,18 @@ export default function VariantBuilder({ variants, onChange, basePrice }: Varian
                       className="input"
                       type="number"
                       min="0"
+                      step="0.01"
+                      style={{ minWidth: '90px' }}
+                      placeholder="%"
+                      value={row.school_commission_percent}
+                      onChange={(e) => updateRow(idx, 'school_commission_percent', e.target.value)}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="input"
+                      type="number"
+                      min="0"
                       style={{ minWidth: '70px' }}
                       value={row.quantity}
                       onChange={(e) => updateRow(idx, 'quantity', parseInt(e.target.value, 10) || 0)}
@@ -145,7 +159,7 @@ export default function VariantBuilder({ variants, onChange, basePrice }: Varian
             )}
             {activeVariants.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '1.5rem' }}>
+                <td colSpan={6} style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '1.5rem' }}>
                   No variants yet — click &quot;Add Row&quot; or use quick-add above
                 </td>
               </tr>

@@ -21,7 +21,7 @@ interface AuthContextValue {
 }
 
 const ROLE_REDIRECTS: Record<UserRole, string> = {
-  admin: '/admin', vendor: '/vendor', school: '/school', student: '/',
+  admin: '/admin', vendor: '/vendor', school: '/school', student: '/store',
 };
 
 export function saveSession(data: AuthTokens) {

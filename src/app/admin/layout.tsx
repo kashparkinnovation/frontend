@@ -4,6 +4,7 @@ import React from 'react';
 import Sidebar from '@/components/ui/Sidebar';
 import { useRouteGuard } from '@/hooks/useRouteGuard';
 import { useAuth } from '@/context/AuthContext';
+import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import styles from '../portal.module.css';
 
 const baseAdminNavItems = [
@@ -11,6 +12,7 @@ const baseAdminNavItems = [
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  useIdleTimeout();
   const { isLoading } = useRouteGuard(['admin']);
   const { user } = useAuth();
   

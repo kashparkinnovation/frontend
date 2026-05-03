@@ -57,6 +57,7 @@ export default function ProductForm({ productId, backHref = '/vendor/products' }
     care_instructions: '',
     tags: '',
     is_active: true,
+    school_commission_percent: '',
   });
 
   // Load approved schools
@@ -84,6 +85,7 @@ export default function ProductForm({ productId, backHref = '/vendor/products' }
           care_instructions: p.care_instructions,
           tags: p.tags,
           is_active: p.is_active,
+          school_commission_percent: p.school_commission_percent ?? '',
         });
         setImages(p.images);
         setVariants(p.inventory.map((inv) => ({
@@ -91,6 +93,7 @@ export default function ProductForm({ productId, backHref = '/vendor/products' }
           size: inv.size,
           color: inv.color,
           price_override: inv.price_override ?? '',
+          school_commission_percent: inv.school_commission_percent ?? '',
           quantity: inv.quantity,
         })));
       })
@@ -119,6 +122,7 @@ export default function ProductForm({ productId, backHref = '/vendor/products' }
         tags: form.tags,
         is_active: form.is_active,
         school: form.school || null,
+        school_commission_percent: form.school_commission_percent ? parseFloat(form.school_commission_percent) : null,
       };
       let id: number;
       if (isEdit && savedProductId) {
@@ -199,6 +203,7 @@ export default function ProductForm({ productId, backHref = '/vendor/products' }
         color: v.color.trim(),
         quantity: v.quantity,
         price_override: v.price_override ? parseFloat(v.price_override) : null,
+        school_commission_percent: v.school_commission_percent ? parseFloat(v.school_commission_percent) : null,
       }));
       const r = await apiClient.post(`/store/vendor/products/${savedProductId}/inventory/`, { variants: payload });
       toast('Inventory saved!', 'success');
@@ -234,7 +239,13 @@ export default function ProductForm({ productId, backHref = '/vendor/products' }
           <button
             key={t.key}
             className={`tab-btn ${tab === t.key ? 'active' : ''}`}
-            onClick={() => setTab(t.key)}
+            onClick={() => {
+              if (t.key !== 'details' && !savedProductId) {
+                toast('Please save product details first', 'error');
+                return;
+              }
+              setTab(t.key);
+            }}
           >
             {t.icon} {t.label}
           </button>
@@ -283,6 +294,10 @@ export default function ProductForm({ productId, backHref = '/vendor/products' }
             <div className="form-group">
               <label className="form-label">Base Price (₹) <span className="required">*</span></label>
               <input className="input" type="number" name="base_price" value={form.base_price} onChange={handleChange} required min="0" step="0.01" placeholder="0.00" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">School Comm. (%)</label>
+              <input className="input" type="number" name="school_commission_percent" value={form.school_commission_percent} onChange={handleChange} min="0" step="0.01" placeholder="0.00" />
             </div>
           </div>
 

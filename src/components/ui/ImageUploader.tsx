@@ -67,7 +67,7 @@ export default function ImageUploader({
           {uploading ? 'Uploading…' : 'Click or drag images here'}
         </p>
         <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-          PNG, JPG, WEBP — multiple files supported
+          All image formats supported (JPG, PNG, WEBP, HEIC, etc.) — multiple files supported
         </p>
       </div>
 

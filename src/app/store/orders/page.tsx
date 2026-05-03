@@ -190,6 +190,26 @@ export default function MyOrdersPage() {
               {selected.status === 'refunded' && '↩️ This order was refunded.'}
             </div>
 
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', width: '100%' }}>
+              <button 
+                onClick={async () => {
+                  try {
+                    const res = await apiClient.get(`/orders/${selected.id}/invoice/`, { responseType: 'blob' });
+                    const url = window.URL.createObjectURL(new Blob([res.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `Invoice_${selected.order_number}.pdf`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.parentNode?.removeChild(link);
+                  } catch (err) { showToast('Failed to download invoice', 'error'); }
+                }}
+                style={{ flex: 1, padding: '0.75rem', background: 'white', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+              >
+                📄 Download Invoice
+              </button>
+            </div>
+
             {selected.status === 'delivered' && (
               <div style={{ marginTop: '2rem', textAlign: 'center' }}>
                 <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.75rem' }}>Need a different size or received a defective item?</p>
@@ -198,6 +218,27 @@ export default function MyOrdersPage() {
                   style={{ background: 'white', color: '#dc2626', border: '1.5px solid #dc2626', padding: '0.75rem 1.5rem', borderRadius: '10px', fontWeight: 700, cursor: 'pointer' }}
                 >
                   Request Return / Exchange
+                </button>
+              </div>
+            )}
+
+            {selected.can_cancel && (
+              <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                <button 
+                  onClick={async () => {
+                    if (!confirm('Are you sure you want to cancel this order?')) return;
+                    try {
+                      await apiClient.post(`/orders/${selected.id}/cancel/`);
+                      showToast('Order cancelled successfully', 'success');
+                      setOrders((prev) => prev.map((o) => o.id === selected.id ? { ...o, status: 'cancelled', can_cancel: false } : o));
+                      setSelected({ ...selected, status: 'cancelled', can_cancel: false });
+                    } catch (err) {
+                      showToast('Failed to cancel order', 'error');
+                    }
+                  }}
+                  style={{ background: 'white', color: '#b91c1c', border: '1px solid #b91c1c', padding: '0.75rem 1.5rem', borderRadius: '10px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Cancel Order
                 </button>
               </div>
             )}

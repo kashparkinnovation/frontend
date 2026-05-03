@@ -107,7 +107,6 @@ export default function VendorSchoolsPage() {
     <div>
       <div className="page-header">
         <h1 className="page-title">Schools</h1>
-        <Link href="/vendor/schools/apply" className="btn btn-primary">+ Apply for School</Link>
       </div>
 
       {/* Filter tabs */}
@@ -137,8 +136,7 @@ export default function VendorSchoolsPage() {
         <div className="empty-state">
           <div className="empty-state-icon">🏫</div>
           <p className="empty-state-title">No schools {filter !== 'all' ? `with status "${filter}"` : 'yet'}</p>
-          <p className="empty-state-desc">Apply for your first school to start adding products</p>
-          <Link href="/vendor/schools/apply" className="btn btn-primary">Apply for School</Link>
+          <p className="empty-state-desc">Wait for the admin to assign a school to you to start adding products</p>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>

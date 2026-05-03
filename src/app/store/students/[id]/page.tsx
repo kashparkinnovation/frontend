@@ -219,32 +219,32 @@ export default function StudentDetailPage() {
             </div>
           )}
 
-          {/* Update Request Form (only if rejected or requested by school) */}
-          {!student.is_verified && student.latest_verification_request?.status === 'rejected' && (
+          {/* Update Request Form (only if rejected or never submitted) */}
+          {!student.is_verified && !student.pending_verification && (
             <form onSubmit={handleVerificationRequest} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.5rem', marginTop: '1rem' }}>
-              <h3 style={{ margin: '0 0 1.25rem', fontSize: '1rem', fontWeight: 700 }}>Update Verification & Re-Submit</h3>
+              <h3 style={{ margin: '0 0 1.25rem', fontSize: '1rem', fontWeight: 700 }}>{student.latest_verification_request?.status === 'rejected' ? 'Update Verification & Re-Submit' : 'Submit Verification Profile'}</h3>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.375rem', color: '#374151' }}>Note to School (optional)</label>
-                  <textarea value={verifyNote} onChange={(e) => setVerifyNote(e.target.value)} placeholder="Reply to the school's remarks..." rows={3}
+                  <textarea value={verifyNote} onChange={(e) => setVerifyNote(e.target.value)} placeholder={student.latest_verification_request?.status === 'rejected' ? "Reply to the school's remarks..." : "Add any details here..."} rows={3}
                     style={{ width: '100%', padding: '0.625rem 0.875rem', border: '1.5px solid #e2e8f0', borderRadius: '8px', resize: 'vertical', fontSize: '0.9375rem', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.375rem', color: '#374151' }}>Updated Student ID Card / Proof</label>
+                  <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.375rem', color: '#374151' }}>Student ID Card / Proof</label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', border: '1.5px dashed #cbd5e1', borderRadius: '8px', cursor: 'pointer', background: '#f8fafc' }}>
                     <span style={{ fontSize: '1.5rem' }}>{idCard ? '📎' : '📁'}</span>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{idCard ? idCard.name : 'Upload new ID card photo'}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>JPG, PNG (Required since previous was rejected)</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{idCard ? idCard.name : 'Upload ID card photo'}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>JPG, PNG</div>
                     </div>
-                    <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(e) => setIdCard(e.target.files?.[0] ?? null)} required />
+                    <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={(e) => setIdCard(e.target.files?.[0] ?? null)} required={student.latest_verification_request?.status === 'rejected'} />
                   </label>
                 </div>
 
                 <button type="submit" disabled={submittingVerify} style={{ padding: '0.75rem', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '0.9375rem', cursor: submittingVerify ? 'not-allowed' : 'pointer', opacity: submittingVerify ? 0.7 : 1, fontFamily: 'inherit' }}>
-                  {submittingVerify ? 'Submitting…' : '📨 Re-Submit Profile Approval'}
+                  {submittingVerify ? 'Submitting…' : '📨 Submit Profile For Approval'}
                 </button>
               </div>
             </form>

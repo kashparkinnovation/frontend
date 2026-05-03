@@ -7,19 +7,22 @@ import PhoneOTP from '@/components/auth/PhoneOTP';
 import EmailOTP from '@/components/auth/EmailOTP';
 import styles from './auth.module.css';
 
-type Method = 'password' | 'phone' | 'email';
+type Method = 'phone' | 'password' | 'email';
 
+// ── Tab order: Phone OTP → Password → Email Link ────────────────────────────
 const TABS: { id: Method; label: string; icon: string }[] = [
-  { id: 'password', label: 'Password',  icon: '🔑' },
-  { id: 'phone',    label: 'Phone OTP', icon: '📱' },
+  { id: 'phone',    label: 'Phone OTP',  icon: '📱' },
+  { id: 'password', label: 'Password',   icon: '🔑' },
   { id: 'email',    label: 'Email Link', icon: '✉️' },
 ];
 
+
 export default function LoginPage() {
   const { login, loginWithOTP, loginWithEmailOTP } = useAuth();
-  const [method, setMethod]     = useState<Method>('password');
+  const [method, setMethod]     = useState<Method>('phone');
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
 
@@ -98,9 +101,24 @@ export default function LoginPage() {
                   Forgot password?
                 </Link>
               </div>
-              <input id="password" type="password" className="input"
-                placeholder="••••••••" value={password}
-                onChange={(e) => setPassword(e.target.value)} required />
+              <div style={{ position: 'relative' }}>
+                <input id="password" type={showPassword ? 'text' : 'password'} className="input"
+                  placeholder="••••••••" value={password}
+                  onChange={(e) => setPassword(e.target.value)} required />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af',
+                    fontSize: '1rem', padding: '0.2rem'
+                  }}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
             </div>
             <button id="login-btn" type="submit" className="btn btn-primary"
               style={{ width: '100%' }} disabled={loading}>

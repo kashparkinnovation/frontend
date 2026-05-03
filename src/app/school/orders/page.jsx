@@ -13,6 +13,12 @@ export default function SchoolOrdersPage() {
   const [filter, setFilter] = useState('');
   const [selected, setSelected] = useState(null);
   const [distributing, setDistributing] = useState(false);
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
+  const [returnType, setReturnType] = useState('return');
+  const [returnReason, setReturnReason] = useState('');
+  const [exchangeSize, setExchangeSize] = useState('');
+  const [exchangeColor, setExchangeColor] = useState('');
+  const [submittingReturn, setSubmittingReturn] = useState(false);
   const { showToast } = useToast();
 
   const fetchOrders = React.useCallback(async () => {
@@ -42,6 +48,32 @@ export default function SchoolOrdersPage() {
       showToast('Update failed.', 'error');
     } finally {
       setDistributing(false);
+    }
+  };
+
+  const handleReturnSubmit = async (e) => {
+    e.preventDefault();
+    if (!selected) return;
+    if (!returnReason.trim()) { showToast('Please provide a reason', 'error'); return; }
+    
+    setSubmittingReturn(true);
+    try {
+      await apiClient.post(`/orders/${selected.id}/return/`, {
+        request_type: returnType,
+        reason: returnReason,
+        exchange_size: exchangeSize,
+        exchange_color: exchangeColor,
+        raised_by_school: true,
+      });
+      showToast('Return request submitted on behalf of student!', 'success');
+      setReturnModalOpen(false);
+      setReturnReason('');
+      setExchangeSize('');
+      setExchangeColor('');
+    } catch (err) {
+      showToast(err?.response?.data?.detail || 'Failed to submit request', 'error');
+    } finally {
+      setSubmittingReturn(false);
     }
   };
 
@@ -148,12 +180,132 @@ export default function SchoolOrdersPage() {
               </div>
             )}
 
-            <div className="drawer-actions" style={{ borderTop: 'none', paddingTop: 0 }}>
+            <div className="drawer-actions" style={{ borderTop: 'none', paddingTop: 0, flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                <button 
+                  onClick={async () => {
+                    try {
+                      const res = await apiClient.get(`/orders/${selected.id}/invoice/`, { responseType: 'blob' });
+                      const url = window.URL.createObjectURL(new Blob([res.data]));
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.setAttribute('download', `Invoice_${selected.order_number}.pdf`);
+                      document.body.appendChild(link);
+                      link.click();
+                      link.parentNode?.removeChild(link);
+                    } catch (err) { showToast('Failed to download invoice', 'error'); }
+                  }}
+                  className="btn btn-outline"
+                  style={{ flex: 1, padding: '0.75rem', background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                >
+                  📄 Download Invoice
+                </button>
+                <button 
+                  onClick={async () => {
+                    try {
+                      const res = await apiClient.get(`/orders/${selected.id}/delivery-slip/`, { responseType: 'blob' });
+                      const url = window.URL.createObjectURL(new Blob([res.data]));
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.setAttribute('download', `DeliverySlip_${selected.order_number}.pdf`);
+                      document.body.appendChild(link);
+                      link.click();
+                      link.parentNode?.removeChild(link);
+                    } catch (err) { showToast('Failed to download delivery slip', 'error'); }
+                  }}
+                  className="btn btn-outline"
+                  style={{ flex: 1, padding: '0.75rem', background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                >
+                  🏷️ Download Delivery Slip
+                </button>
+              </div>
+              {selected.status === 'delivered' && (
+                <button 
+                  onClick={() => setReturnModalOpen(true)}
+                  className="btn btn-outline"
+                  style={{ width: '100%', color: '#dc2626', borderColor: '#fca5a5', background: 'white' }}
+                >
+                  Request Return / Exchange
+                </button>
+              )}
               <Link href={`/school/orders/${selected.id}`} className="btn btn-outline" onClick={() => setSelected(null)}>
                 View Full Details →
               </Link>
+              {selected.can_cancel && (
+                <button 
+                  onClick={async () => {
+                    if (!confirm('Are you sure you want to cancel this order?')) return;
+                    try {
+                      await apiClient.post(`/orders/${selected.id}/cancel/`);
+                      showToast('Order cancelled successfully', 'success');
+                      setOrders((prev) => prev.map((o) => o.id === selected.id ? { ...o, status: 'cancelled', can_cancel: false } : o));
+                      setSelected({ ...selected, status: 'cancelled', can_cancel: false });
+                    } catch (err) {
+                      showToast('Failed to cancel order', 'error');
+                    }
+                  }}
+                  className="btn btn-outline"
+                  style={{ width: '100%', color: '#dc2626', borderColor: '#fca5a5', background: '#fef2f2' }}
+                >
+                  Cancel Order
+                </button>
+              )}
             </div>
           </>
+        )}
+
+        {selected && returnModalOpen && (
+          <form onSubmit={handleReturnSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <DrawerSection title="Request Return or Exchange (On behalf of Student)" />
+            
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', border: `1.5px solid ${returnType === 'return' ? '#4f46e5' : '#e2e8f0'}`, background: returnType === 'return' ? '#eef2ff' : 'white', padding: '1rem', borderRadius: '10px', cursor: 'pointer' }}>
+                <input type="radio" checked={returnType === 'return'} onChange={() => setReturnType('return')} style={{ accentColor: '#4f46e5' }} />
+                <span style={{ fontWeight: 600 }}>Refund</span>
+              </label>
+              <label style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem', border: `1.5px solid ${returnType === 'exchange' ? '#4f46e5' : '#e2e8f0'}`, background: returnType === 'exchange' ? '#eef2ff' : 'white', padding: '1rem', borderRadius: '10px', cursor: 'pointer' }}>
+                <input type="radio" checked={returnType === 'exchange'} onChange={() => setReturnType('exchange')} style={{ accentColor: '#4f46e5' }} />
+                <span style={{ fontWeight: 600 }}>Exchange</span>
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Reason for {returnType}</label>
+              <textarea 
+                value={returnReason} onChange={(e) => setReturnReason(e.target.value)} required
+                placeholder="Please describe why the student wants to return or exchange..." 
+                style={{ width: '100%', minHeight: '80px', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', fontFamily: 'inherit' }} 
+              />
+            </div>
+
+            {returnType === 'exchange' && (
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Replacement Size</label>
+                  <input type="text" value={exchangeSize} onChange={(e) => setExchangeSize(e.target.value)} placeholder="e.g. 34, M" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                  <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Replacement Color</label>
+                  <input type="text" value={exchangeColor} onChange={(e) => setExchangeColor(e.target.value)} placeholder="(Optional)" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+              <button 
+                type="button" onClick={() => setReturnModalOpen(false)}
+                style={{ flex: 1, background: '#f1f5f9', color: '#475569', border: 'none', padding: '0.875rem', borderRadius: '10px', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" disabled={submittingReturn}
+                style={{ flex: 2, background: '#4f46e5', color: 'white', border: 'none', padding: '0.875rem', borderRadius: '10px', fontWeight: 700, cursor: submittingReturn ? 'not-allowed' : 'pointer', opacity: submittingReturn ? 0.7 : 1 }}
+              >
+                {submittingReturn ? 'Submitting...' : 'Submit Request'}
+              </button>
+            </div>
+          </form>
         )}
       </Drawer>
     </div>

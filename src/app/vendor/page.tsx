@@ -45,7 +45,6 @@ export default function VendorDashboardPage() {
         <h1 className="page-title">Dashboard</h1>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <Link href="/vendor/products/new" className="btn btn-primary btn-sm">+ Add Product</Link>
-          <Link href="/vendor/schools/apply" className="btn btn-outline btn-sm">+ Apply for School</Link>
         </div>
       </div>
 

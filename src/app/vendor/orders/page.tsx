@@ -152,12 +152,42 @@ export default function VendorOrdersPage() {
               <button className="btn btn-primary" onClick={updateStatus} disabled={updating || newStatus === selected.status} style={{ flex: 1 }}>
                 {updating ? <><span className="spinner" style={{ width: 14, height: 14 }} /> Updating…</> : 'Update Status'}
               </button>
-              <button 
-                onClick={() => window.open(`/vendor/orders/${selected.id}/print`, '_blank')} 
-                style={{ flex: 1, padding: '0.75rem', background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-              >
-                🖨️ Print Invoice & Label
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', flex: 1, flexDirection: 'column' }}>
+                <button 
+                  onClick={async () => {
+                    try {
+                      const res = await apiClient.get(`/orders/${selected.id}/invoice/`, { responseType: 'blob' });
+                      const url = window.URL.createObjectURL(new Blob([res.data]));
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.setAttribute('download', `Invoice_${selected.order_number}.pdf`);
+                      document.body.appendChild(link);
+                      link.click();
+                      link.parentNode?.removeChild(link);
+                    } catch (err) { showToast('Failed to download invoice', 'error'); }
+                  }}
+                  style={{ flex: 1, padding: '0.75rem', background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                >
+                  📄 Download Invoice
+                </button>
+                <button 
+                  onClick={async () => {
+                    try {
+                      const res = await apiClient.get(`/orders/${selected.id}/delivery-slip/`, { responseType: 'blob' });
+                      const url = window.URL.createObjectURL(new Blob([res.data]));
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.setAttribute('download', `DeliverySlip_${selected.order_number}.pdf`);
+                      document.body.appendChild(link);
+                      link.click();
+                      link.parentNode?.removeChild(link);
+                    } catch (err) { showToast('Failed to download delivery slip', 'error'); }
+                  }}
+                  style={{ flex: 1, padding: '0.75rem', background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                >
+                  🏷️ Download Delivery Slip
+                </button>
+              </div>
             </div>
           </>
         )}

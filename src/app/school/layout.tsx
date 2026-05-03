@@ -3,6 +3,7 @@
 import React from 'react';
 import Sidebar from '@/components/ui/Sidebar';
 import { useRouteGuard } from '@/hooks/useRouteGuard';
+import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import styles from '../portal.module.css';
 
 const schoolNavItems = [
@@ -12,11 +13,13 @@ const schoolNavItems = [
   { label: 'Orders',       href: '/school/orders',        icon: '🛒' },
   { label: 'Bulk Orders',  href: '/school/orders/bulk',   icon: '📦' },
   { label: 'Distribution', href: '/school/distribution',  icon: '🔄' },
+  { label: 'Returns',      href: '/school/returns',       icon: '↩️' },
   { label: 'Profile',      href: '/school/profile',       icon: '🏫' },
   { label: 'Vendor Requests', href: '/school/vendor-requests', icon: '🤝' },
 ];
 
 export default function SchoolLayout({ children }: { children: React.ReactNode }) {
+  useIdleTimeout();
   const { isLoading } = useRouteGuard(['school']);
   if (isLoading) return <div className={styles.loadingScreen}>Loading…</div>;
 

@@ -94,7 +94,7 @@ export default function NewStudentPage() {
           <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Only approved schools are listed. <Link href="/browse" style={{ color: '#4f46e5' }}>Browse all schools →</Link></span>
         </div>
 
-        {inp('student_name', "Student&apos;s Full Name", 'e.g., Priya Sharma', true)}
+        {inp('student_name', "Student's Full Name", 'e.g., Priya Sharma', true)}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>

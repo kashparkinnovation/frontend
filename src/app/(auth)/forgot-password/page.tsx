@@ -19,6 +19,7 @@ export default function ForgotPasswordPage() {
   const [error, setError]       = useState('');
   const [success, setSuccess]   = useState('');
   const [loading, setLoading]   = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleOTPVerified = (token: string) => {
     setIdToken(token); setError('');
@@ -112,13 +113,43 @@ export default function ForgotPasswordPage() {
 
             <div className={styles.formGroup}>
               <label className={styles.label}>New Password</label>
-              <input type="password" className="input" placeholder="Min 8 characters"
-                value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <div style={{ position: 'relative' }}>
+                <input type={showPassword ? 'text' : 'password'} className="input" placeholder="Min 8 characters"
+                  value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af',
+                    fontSize: '1rem', padding: '0.2rem'
+                  }}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
             </div>
             <div className={styles.formGroup}>
               <label className={styles.label}>Confirm New Password</label>
-              <input type="password" className="input" placeholder="••••••••"
-                value={password2} onChange={(e) => setPassword2(e.target.value)} required />
+              <div style={{ position: 'relative' }}>
+                <input type={showPassword ? 'text' : 'password'} className="input" placeholder="••••••••"
+                  value={password2} onChange={(e) => setPassword2(e.target.value)} required />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af',
+                    fontSize: '1rem', padding: '0.2rem'
+                  }}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
             </div>
 
             <button id="reset-password-btn" type="submit" className="btn btn-primary"

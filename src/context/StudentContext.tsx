@@ -13,6 +13,8 @@ interface StudentProfile {
   school_name: string;
   is_verified: boolean;
   verified_at: string | null;
+  pending_verification?: boolean;
+  latest_verification_request?: { status: string; request_note: string; review_note: string; created_at: string } | null;
 }
 
 interface StudentContextValue {

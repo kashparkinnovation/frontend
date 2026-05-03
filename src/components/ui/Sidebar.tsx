@@ -23,7 +23,8 @@ export default function Sidebar({ navItems, portalTitle }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
+    <>
+      <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ''}`}>
       <div className={styles.sidebarHeader}>
         <span className={styles.logoIcon}>🎓</span>
         {!collapsed && <span className={styles.portalTitle}>{portalTitle}</span>}
@@ -68,6 +69,16 @@ export default function Sidebar({ navItems, portalTitle }: SidebarProps) {
           🚪 {!collapsed && 'Logout'}
         </button>
       </div>
-    </aside>
+      {/* Mobile overlay toggle */}
+      {collapsed && (
+        <button
+          onClick={() => setCollapsed(false)}
+          className={styles.mobileToggleBtn}
+          aria-label="Open sidebar"
+        >
+          ☰
+        </button>
+      )}
+    </>
   );
 }

@@ -88,7 +88,7 @@ export default function LandingPage() {
 
   const filtered = schools.filter((s) => {
     const q = schoolSearch.toLowerCase();
-    return !q || s.name.toLowerCase().includes(q) || s.city?.toLowerCase().includes(q) || s.code.toLowerCase().includes(q);
+    return !q || s.name.toLowerCase().includes(q) || s.city?.toLowerCase().includes(q);
   });
 
   const logoUrl = (logo: string | null) => logo ? (logo.startsWith('http') ? logo : `${API_BASE}${logo}`) : null;
@@ -140,11 +140,13 @@ export default function LandingPage() {
                 onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.transform = '')}>
                 Browse Collections
               </Link>
-              <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', fontWeight: 600, fontSize: '1rem', padding: '1rem 2.25rem', borderRadius: '12px', textDecoration: 'none', transition: 'all 0.2s', backdropFilter: 'blur(10px)' }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)')}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)')}>
-                Parent Login →
-              </Link>
+              {!isAuthenticated && (
+                <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', fontWeight: 600, fontSize: '1rem', padding: '1rem 2.25rem', borderRadius: '12px', textDecoration: 'none', transition: 'all 0.2s', backdropFilter: 'blur(10px)' }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.15)')}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)')}>
+                  Parent Login →
+                </Link>
+              )}
             </div>
 
             {/* Micro stats banner */}

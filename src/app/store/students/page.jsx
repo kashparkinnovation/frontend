@@ -60,8 +60,10 @@ export default function StudentsListPage() {
                   <StatusBadge status="approved" />
                 ) : s.pending_verification ? (
                   <StatusBadge status="pending" />
-                ) : (
+                ) : s.latest_verification_request?.status === 'rejected' ? (
                   <StatusBadge status="rejected" />
+                ) : (
+                  <StatusBadge status="unverified" />
                 )}
               </div>
               {/* Actions */}

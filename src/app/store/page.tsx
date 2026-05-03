@@ -13,7 +13,9 @@ export default function StoreHomePage() {
   const { students, activeStudent, setActiveStudent } = useStudent();
 
   const verifiedStudents = students.filter((s) => s.is_verified);
-  const pendingStudents = students.filter((s) => !s.is_verified);
+  const pendingStudents = students.filter((s) => !s.is_verified && s.pending_verification);
+  const rejectedStudents = students.filter((s) => !s.is_verified && !s.pending_verification && s.latest_verification_request?.status === 'rejected');
+  const unsubmittedStudents = students.filter((s) => !s.is_verified && !s.pending_verification && s.latest_verification_request?.status !== 'rejected');
 
   return (
     <div>
@@ -31,6 +33,7 @@ export default function StoreHomePage() {
           { icon: '👨‍🎓', value: students.length, label: 'Students', href: '/store/students' },
           { icon: '✅', value: verifiedStudents.length, label: 'Verified', href: '/store/students' },
           { icon: '⏳', value: pendingStudents.length, label: 'Pending', href: '/store/students' },
+          { icon: '⚠️', value: rejectedStudents.length + unsubmittedStudents.length, label: 'Action Needed', href: '/store/students' },
         ].map((stat) => (
           <Link key={stat.label} href={stat.href} style={{ textDecoration: 'none' }}>
             <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.375rem', transition: 'box-shadow 0.15s' }}
@@ -86,7 +89,7 @@ export default function StoreHomePage() {
                     <div style={{ fontWeight: 700, fontSize: '0.9375rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.student_name}</div>
                     <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{s.class_name} {s.section} · {s.school_name}</div>
                   </div>
-                  <StatusBadge status={s.is_verified ? 'verified' : 'unverified'} />
+                  <StatusBadge status={s.is_verified ? 'verified' : s.pending_verification ? 'pending' : s.latest_verification_request?.status === 'rejected' ? 'rejected' : 'unverified'} />
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -95,10 +98,14 @@ export default function StoreHomePage() {
                       style={{ flex: 1, textAlign: 'center', background: '#4f46e5', color: 'white', padding: '0.5rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '0.8125rem' }}>
                       🛒 Shop
                     </Link>
+                  ) : s.pending_verification ? (
+                    <div style={{ flex: 1, textAlign: 'center', background: '#f8fafc', color: '#64748b', padding: '0.5rem', borderRadius: '8px', fontWeight: 600, fontSize: '0.8125rem', border: '1px solid #e2e8f0' }}>
+                      ⏳ Awaiting Approval
+                    </div>
                   ) : (
                     <Link href={`/store/students/${s.id}`}
                       style={{ flex: 1, textAlign: 'center', background: '#fef3c7', color: '#92400e', padding: '0.5rem', borderRadius: '8px', textDecoration: 'none', fontWeight: 600, fontSize: '0.8125rem' }}>
-                      📋 Verify
+                      {s.latest_verification_request?.status === 'rejected' ? '❌ Action Needed' : '📋 Verify'}
                     </Link>
                   )}
                   <Link href={`/store/students/${s.id}`}

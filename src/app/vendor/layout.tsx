@@ -3,6 +3,7 @@
 import React from 'react';
 import Sidebar from '@/components/ui/Sidebar';
 import { useRouteGuard } from '@/hooks/useRouteGuard';
+import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import styles from '../portal.module.css';
 
 const vendorNavItems = [
@@ -20,6 +21,7 @@ const vendorNavItems = [
 ];
 
 export default function VendorLayout({ children }: { children: React.ReactNode }) {
+  useIdleTimeout();
   const { isLoading } = useRouteGuard(['vendor']);
   if (isLoading) return <div className={styles.loadingScreen}>Loading…</div>;
 
