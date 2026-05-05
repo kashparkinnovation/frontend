@@ -196,33 +196,7 @@ export default function SchoolCataloguePage() {
     activeStudent?.school === Number(schoolId) &&
     !activeStudent?.is_verified;
 
-  const handleQuickAdd = (e, product) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!canOrder) {
-      showToast(
-        "You need a verified student profile for this school to order.",
-        "error",
-      );
-      return;
-    }
-    const first = product.inventory.find((i) => i.quantity > 0);
-    if (!first) {
-      showToast("Out of stock", "error");
-      return;
-    }
-    addItem({
-      productId: product.id,
-      inventoryId: first.id,
-      productName: product.name,
-      size: first.size,
-      color: first.color,
-      quantity: 1,
-      unitPrice: parseFloat(first.effective_price),
-      schoolId: Number(schoolId),
-    });
-    showToast(`${product.name} added to cart ✅`, "success");
-  };
+
 
   const activeFiltersCount =
     selectedCats.length +
@@ -1045,7 +1019,13 @@ export default function SchoolCataloguePage() {
                 gap: "1.25rem",
               }}
             >
-              {filteredProducts.map((product, idx) => {
+              {filteredProducts
+                .filter((product) => {
+                  // Only show products that have at least some stock available
+                  const stock = product.inventory.reduce((s, i) => s + i.quantity, 0);
+                  return stock > 0;
+                })
+                .map((product, idx) => {
                 const primaryImg = imgUrl(product);
                 const secondaryImg = imgUrl(product, true);
                 const totalStock = product.inventory.reduce(
@@ -1170,23 +1150,7 @@ export default function SchoolCataloguePage() {
                               🔥 Low Stock
                             </span>
                           )}
-                          {totalStock === 0 && (
-                            <span
-                              className="mat-badge"
-                              style={{ background: "#475569", color: "white" }}
-                            >
-                              Out of Stock
-                            </span>
-                          )}
                         </div>
-                        {/* Quick add overlay */}
-                        <button
-                          className="mat-quick-add"
-                          onClick={(e) => handleQuickAdd(e, product)}
-                          style={{ fontFamily: "var(--font-sans)" }}
-                        >
-                          + Quick Add
-                        </button>
                       </div>
                       {/* Card body */}
                       <div style={{ padding: "0.875rem" }}>
@@ -1275,20 +1239,15 @@ export default function SchoolCataloguePage() {
                           <span
                             style={{
                               fontSize: "0.7rem",
-                              color:
-                                totalStock === 0
-                                  ? "var(--mat-danger)"
-                                  : isLowStock
-                                    ? "#f59e0b"
-                                    : "var(--mat-success)",
+                              color: isLowStock
+                                ? "#f59e0b"
+                                : "var(--mat-success)",
                               fontWeight: 700,
                             }}
                           >
-                            {totalStock === 0
-                              ? "Out of Stock"
-                              : isLowStock
-                                ? `Only ${totalStock} left`
-                                : "In Stock"}
+                            {isLowStock
+                              ? `Only ${totalStock} left`
+                              : "✓ Available"}
                           </span>
                         </div>
                       </div>

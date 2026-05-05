@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -9,16 +9,56 @@ import styles from "./Sidebar.module.css";
 export default function Sidebar({ navItems, portalTitle }) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  // Start collapsed on mobile, open on desktop
   const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const handleChange = (e) => {
+      setIsMobile(e.matches);
+      setCollapsed(e.matches); // auto-collapse on mobile
+    };
+    handleChange(mq);
+    mq.addEventListener("change", handleChange);
+    return () => mq.removeEventListener("change", handleChange);
+  }, []);
+
+  // Close sidebar when navigating on mobile
+  useEffect(() => {
+    if (isMobile) setCollapsed(true);
+  }, [pathname, isMobile]);
+
+  const isOpen = !collapsed;
 
   return (
     <>
+      {/* Mobile hamburger — always visible on mobile when sidebar is closed */}
+      {isMobile && collapsed && (
+        <button
+          onClick={() => setCollapsed(false)}
+          className={styles.mobileToggleBtn}
+          aria-label="Open sidebar"
+        >
+          ☰
+        </button>
+      )}
+
+      {/* Overlay to close sidebar on mobile tap outside */}
+      {isMobile && isOpen && (
+        <div
+          className={styles.mobileOverlay}
+          onClick={() => setCollapsed(true)}
+          aria-hidden="true"
+        />
+      )}
+
       <aside
         className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""}`}
       >
         <div className={styles.sidebarHeader}>
           <span className={styles.logoIcon}>🎓</span>
-          {!collapsed && (
+          {isOpen && (
             <span className={styles.portalTitle}>{portalTitle}</span>
           )}
           <button
@@ -26,7 +66,7 @@ export default function Sidebar({ navItems, portalTitle }) {
             onClick={() => setCollapsed((c) => !c)}
             aria-label="Toggle sidebar"
           >
-            {collapsed ? "→" : "←"}
+            {isOpen ? "←" : "→"}
           </button>
         </div>
 
@@ -41,7 +81,7 @@ export default function Sidebar({ navItems, portalTitle }) {
                 className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
               >
                 <span className={styles.navIcon}>{item.icon}</span>
-                {!collapsed && (
+                {isOpen && (
                   <span className={styles.navLabel}>{item.label}</span>
                 )}
               </Link>
@@ -50,7 +90,7 @@ export default function Sidebar({ navItems, portalTitle }) {
         </nav>
 
         <div className={styles.sidebarFooter}>
-          {!collapsed && (
+          {isOpen && (
             <div className={styles.userInfo}>
               <div className={styles.userAvatar}>
                 {user?.first_name?.[0]}
@@ -65,20 +105,10 @@ export default function Sidebar({ navItems, portalTitle }) {
             </div>
           )}
           <button onClick={logout} className={styles.logoutBtn} title="Logout">
-            🚪 {!collapsed && "Logout"}
+            🚪 {isOpen && "Logout"}
           </button>
         </div>
       </aside>
-      {/* Mobile overlay toggle */}
-      {collapsed && (
-        <button
-          onClick={() => setCollapsed(false)}
-          className={styles.mobileToggleBtn}
-          aria-label="Open sidebar"
-        >
-          ☰
-        </button>
-      )}
     </>
   );
 }

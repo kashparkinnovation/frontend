@@ -1,46 +1,54 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo } from "react";
 
 const StudentContext = createContext(undefined);
 
+// Store only the ID to avoid stale cached data
 const ACTIVE_KEY = "active_student_id";
 
 export function StudentProvider({ children }) {
   const [students, setStudents] = useState([]);
-  const [activeStudent, _setActiveStudent] = useState(null);
+  const [activeStudentId, setActiveStudentId] = useState(null);
   const [refreshNeeded, setRefreshNeeded] = useState(false);
 
-  // Restore active student from localStorage on mount
+  // Restore active student ID from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem(ACTIVE_KEY);
     if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        _setActiveStudent(parsed);
-      } catch {
-        localStorage.removeItem(ACTIVE_KEY);
-      }
+      const id = parseInt(stored, 10);
+      if (!isNaN(id)) setActiveStudentId(id);
     }
   }, []);
 
-  // When students list loads, sync the active student (it may have been updated)
+  // Auto-select first student if none is selected after students load
   useEffect(() => {
-    if (students.length > 0 && activeStudent) {
-      const updated = students.find((s) => s.id === activeStudent.id);
-      if (updated) _setActiveStudent(updated);
-    }
-    // Auto-select first if none selected
-    if (students.length > 0 && !activeStudent) {
+    if (students.length > 0 && activeStudentId === null) {
       const stored = localStorage.getItem(ACTIVE_KEY);
-      if (!stored) setActiveStudent(students[0]);
+      if (!stored) {
+        setActiveStudentId(students[0].id);
+        localStorage.setItem(ACTIVE_KEY, String(students[0].id));
+      }
     }
-  }, [students]);
+  }, [students, activeStudentId]);
+
+  /**
+   * Always resolve the active student from the live `students` list.
+   * This ensures is_verified and other fields are always up-to-date.
+   */
+  const activeStudent = useMemo(
+    () => students.find((s) => s.id === activeStudentId) ?? null,
+    [students, activeStudentId],
+  );
 
   const setActiveStudent = (s) => {
-    _setActiveStudent(s);
-    if (s) localStorage.setItem(ACTIVE_KEY, JSON.stringify(s));
-    else localStorage.removeItem(ACTIVE_KEY);
+    if (s) {
+      setActiveStudentId(s.id);
+      localStorage.setItem(ACTIVE_KEY, String(s.id));
+    } else {
+      setActiveStudentId(null);
+      localStorage.removeItem(ACTIVE_KEY);
+    }
   };
 
   const triggerRefresh = () => setRefreshNeeded((v) => !v);

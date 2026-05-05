@@ -219,11 +219,11 @@ export default function CheckoutPage() {
           {/* Order status stepper */}
           <div style={{ display: "flex", marginBottom: "2.5rem", gap: "0" }}>
             {[
-              "Ordered",
-              "Confirmed",
+              "Awaiting Confirmation",
               "Processing",
-              "At School",
-              "Collected",
+              "Shipped",
+              "Delivered",
+              "Distributed",
             ].map((s, i) => (
               <div
                 key={s}

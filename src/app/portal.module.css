@@ -3,26 +3,28 @@
 .portalContainer {
   display: flex;
   min-height: 100vh;
-  flex-direction: column;
+  flex-direction: row;
 }
 
-@media (min-width: 768px) {
+/* On mobile: content takes full width since sidebar is fixed overlay */
+@media (max-width: 768px) {
   .portalContainer {
-    flex-direction: row;
+    flex-direction: column;
   }
 }
 
 .portalMain {
   flex: 1;
-  padding: 1rem;
+  padding: 2rem;
   overflow-y: auto;
-  max-height: 100vh;
+  min-height: 100vh;
   width: 100%;
+  min-width: 0; /* prevent flex overflow */
 }
 
-@media (min-width: 768px) {
+@media (max-width: 768px) {
   .portalMain {
-    padding: 2rem;
+    padding: 4.5rem 1rem 1.5rem; /* top padding for hamburger button */
   }
 }
 
@@ -36,38 +38,72 @@
   font-weight: 500;
 }
 
-/* Stats card grid */
+/* ── Stats card grid ──────────────────────────────────────────── */
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.25rem;
   margin-bottom: 2rem;
+}
+
+@media (max-width: 640px) {
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.875rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .statCard {
   background: white;
   border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  padding: 1.25rem;
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
 }
 
 .statIcon {
-  font-size: 1.75rem;
-  margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+  margin-bottom: 0.625rem;
   display: block;
 }
 
 .statValue {
-  font-size: 1.875rem;
+  font-size: 1.625rem;
   font-weight: 800;
   color: var(--color-text-primary);
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.2rem;
+}
+
+@media (max-width: 640px) {
+  .statValue {
+    font-size: 1.375rem;
+  }
 }
 
 .statLabel {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
   margin: 0;
   font-weight: 500;
+}
+
+/* ── Page header ─────────────────────────────────────────────── */
+.pageHeaderMobile {
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .pageHeaderMobile .actions {
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
 }

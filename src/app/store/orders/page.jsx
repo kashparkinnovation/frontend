@@ -73,15 +73,14 @@ export default function MyOrdersPage() {
 
   const fmt = (n) => `₹${parseFloat(String(n)).toLocaleString("en-IN")}`;
 
-  const STATUS_LABEL = {
-    pending: { icon: "⏳", color: "#92400e" },
-    confirmed: { icon: "✅", color: "#1d4ed8" },
-    processing: { icon: "⚙️", color: "#6d28d9" },
-    shipped: { icon: "📦", color: "#0369a1" },
-    delivered: { icon: "🎉", color: "#15803d" },
-    collected: { icon: "✅", color: "#15803d" },
-    cancelled: { icon: "❌", color: "#b91c1c" },
-    refunded: { icon: "↩️", color: "#4b5563" },
+  const STATUS_ICON = {
+    awaiting_confirmation: "⏳",
+    processing:           "⚙️",
+    shipped:              "📦",
+    delivered:            "🏫",
+    distributed:          "✅",
+    cancelled:            "❌",
+    refunded:             "↩️",
   };
 
   return (
@@ -121,12 +120,13 @@ export default function MyOrdersPage() {
         }}
       >
         {[
-          { key: "", label: "All" },
-          { key: "pending", label: "Pending" },
-          { key: "processing", label: "Processing" },
-          { key: "shipped", label: "Shipped" },
-          { key: "delivered", label: "Delivered" },
-          { key: "cancelled", label: "Cancelled" },
+          { key: "",                      label: "All" },
+          { key: "awaiting_confirmation", label: "Awaiting Confirmation" },
+          { key: "processing",            label: "Processing" },
+          { key: "shipped",               label: "Shipped" },
+          { key: "delivered",             label: "Delivered" },
+          { key: "distributed",           label: "Distributed" },
+          { key: "cancelled",             label: "Cancelled" },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -231,7 +231,7 @@ export default function MyOrdersPage() {
               >
                 {/* Status icon */}
                 <div style={{ fontSize: "1.5rem", flexShrink: 0 }}>
-                  {st?.icon ?? "📋"}
+                  {STATUS_ICON[order.status] ?? "📋"}
                 </div>
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -392,18 +392,18 @@ export default function MyOrdersPage() {
                 lineHeight: 1.6,
               }}
             >
-              {selected.status === "pending" &&
-                "⏳ Your order has been placed and is awaiting confirmation from the school."}
-              {selected.status === "confirmed" &&
-                "✅ Order confirmed! It will be processed and delivered to your school."}
+              {selected.status === "awaiting_confirmation" &&
+                "⏳ Your order is awaiting confirmation from the vendor."}
               {selected.status === "processing" &&
                 "⚙️ Your uniforms are being prepared by the vendor."}
               {selected.status === "shipped" &&
                 "📦 Your order is on its way to the school."}
               {selected.status === "delivered" &&
-                "🏫 Uniforms delivered to school. Collect them from the school office."}
+                "🏫 Uniforms delivered to school. The school will distribute them to students soon."}
+              {selected.status === "distributed" &&
+                "✅ Uniforms have been distributed. Collect from the school office if you haven't already."}
               {selected.status === "cancelled" &&
-                "❌ This order was cancelled. Contact the school for details."}
+                "❌ This order was cancelled."}
               {selected.status === "refunded" && "↩️ This order was refunded."}
             </div>
 
@@ -457,7 +457,7 @@ export default function MyOrdersPage() {
               </button>
             </div>
 
-            {selected.status === "delivered" && (
+            {selected.status === "distributed" && (
               <div style={{ marginTop: "2rem", textAlign: "center" }}>
                 <p
                   style={{

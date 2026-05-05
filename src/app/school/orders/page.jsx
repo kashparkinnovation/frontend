@@ -36,16 +36,17 @@ export default function SchoolOrdersPage() {
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
-  const handleDistribute = async (newStatus) => {
+  const handleMarkAsDistributed = async () => {
     if (!selected) return;
     setDistributing(true);
     try {
-      const { data } = await apiClient.patch(`/orders/school/${selected.id}/distribute/`, { distribution_status: newStatus });
+      // Endpoint: PATCH /api/v1/orders/school/{pk}/distribute/
+      const { data } = await apiClient.patch(`/orders/school/${selected.id}/distribute/`);
       setSelected(data);
       setOrders((prev) => prev.map((o) => o.id === data.id ? data : o));
-      showToast('Distribution status updated.', 'success');
-    } catch {
-      showToast('Update failed.', 'error');
+      showToast('Order marked as Distributed!', 'success');
+    } catch (err) {
+      showToast(err?.response?.data?.detail || 'Update failed.', 'error');
     } finally {
       setDistributing(false);
     }
@@ -79,10 +80,11 @@ export default function SchoolOrdersPage() {
 
   const tabs = [
     { key: '', label: 'All' },
-    { key: 'pending', label: 'Pending' },
-    { key: 'confirmed', label: 'Confirmed' },
+    { key: 'awaiting_confirmation', label: 'Awaiting' },
+    { key: 'processing', label: 'Processing' },
     { key: 'shipped', label: 'Shipped' },
     { key: 'delivered', label: 'Delivered' },
+    { key: 'distributed', label: 'Distributed' },
   ];
 
   return (
@@ -111,13 +113,12 @@ export default function SchoolOrdersPage() {
                   <th>Vendor</th>
                   <th>Total</th>
                   <th>Status</th>
-                  <th>Distribution</th>
                   <th>Date</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.length === 0 ? (
-                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>No orders found.</td></tr>
+                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No orders found.</td></tr>
                 ) : orders.map((o) => (
                   <tr key={o.id} onClick={() => setSelected(o)}>
                     <td style={{ fontWeight: 600, fontFamily: 'monospace' }}>{o.order_number}</td>
@@ -125,7 +126,6 @@ export default function SchoolOrdersPage() {
                     <td>{o.vendor_name}</td>
                     <td>₹{parseFloat(o.total_amount).toLocaleString('en-IN')}</td>
                     <td><StatusBadge status={o.status} /></td>
-                    <td><StatusBadge status={o.distribution_status} /></td>
                     <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{new Date(o.created_at).toLocaleDateString()}</td>
                   </tr>
                 ))}
@@ -143,7 +143,6 @@ export default function SchoolOrdersPage() {
             <DrawerRow label="Student" value={selected.student_name} />
             <DrawerRow label="Vendor" value={selected.vendor_name} />
             <DrawerRow label="Order Status" value={<StatusBadge status={selected.status} />} />
-            <DrawerRow label="Distribution" value={<StatusBadge status={selected.distribution_status} />} />
             <DrawerRow label="Total" value={<strong>₹{parseFloat(selected.total_amount).toLocaleString('en-IN')}</strong>} />
             <DrawerRow label="Date" value={new Date(selected.created_at).toLocaleString()} />
             {selected.bulk_order_number && (
@@ -169,13 +168,10 @@ export default function SchoolOrdersPage() {
               </>
             )}
 
-            {selected.distribution_status === 'ready_for_pickup' && (
+            {selected.status === 'delivered' && (
               <div className="drawer-actions">
-                <button onClick={() => handleDistribute('collected')} disabled={distributing} className="btn btn-primary">
-                  {distributing ? '…' : '✓ Mark as Collected'}
-                </button>
-                <button onClick={() => handleDistribute('returned')} disabled={distributing} className="btn" style={{ background: '#fee2e2', color: '#b91c1c' }}>
-                  {distributing ? '…' : '✕ Mark as Returned'}
+                <button onClick={handleMarkAsDistributed} disabled={distributing} className="btn btn-primary" style={{ width: '100%' }}>
+                  {distributing ? 'Updating…' : '✓ Mark as Distributed to Student'}
                 </button>
               </div>
             )}
@@ -219,7 +215,7 @@ export default function SchoolOrdersPage() {
                   🏷️ Download Delivery Slip
                 </button>
               </div>
-              {selected.status === 'delivered' && (
+              {selected.status === 'distributed' && (
                 <button 
                   onClick={() => setReturnModalOpen(true)}
                   className="btn btn-outline"

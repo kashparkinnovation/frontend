@@ -7,11 +7,11 @@ import Drawer, { DrawerRow, DrawerSection } from "@/components/ui/Drawer";
 import { useToast } from "@/context/ToastContext";
 
 const ORDER_STATUSES = [
-  "pending",
-  "confirmed",
+  "awaiting_confirmation",
   "processing",
   "shipped",
   "delivered",
+  "distributed",
   "cancelled",
   "refunded",
 ];

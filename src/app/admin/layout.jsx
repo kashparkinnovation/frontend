@@ -61,6 +61,13 @@ export default function AdminLayout({ children }) {
       icon: "📞",
     });
   }
+  if (user.can_manage_orders) {
+    dynamicNavItems.push({
+      label: "Orders",
+      href: "/admin/orders",
+      icon: "🛒",
+    });
+  }
 
   // Always show users management for superadmins or specific roles if needed. We'll simply let all admins see it for now, or maybe only true superusers
   dynamicNavItems.push({

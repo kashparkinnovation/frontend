@@ -4,35 +4,48 @@
   background: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
-  transition: width 0.2s ease;
+  transition: width 0.22s ease;
   flex-shrink: 0;
   position: sticky;
   top: 0;
   height: 100vh;
   overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 100;
 }
 
 .collapsed {
   width: 64px;
 }
 
+/* ── Mobile: full-screen drawer ─────────────────────────────── */
 @media (max-width: 768px) {
   .sidebar {
-    position: absolute;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: var(--sidebar-width) !important;
+    transform: translateX(0);
     z-index: 1000;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
   }
+
   .collapsed {
-    width: 0;
-    overflow: hidden;
+    transform: translateX(-100%);
+    width: var(--sidebar-width) !important;
+    pointer-events: none;
   }
 }
 
+/* ── Header ──────────────────────────────────────────────────── */
 .sidebarHeader {
   display: flex;
   align-items: center;
   gap: 0.625rem;
   padding: 1.25rem 1rem;
   border-bottom: 1px solid rgba(255 255 255 / 0.08);
+  flex-shrink: 0;
 }
 
 .logoIcon {
@@ -62,19 +75,21 @@
 }
 .collapseBtn:hover { background: rgba(255 255 255 / 0.1); }
 
+/* ── Nav ─────────────────────────────────────────────────────── */
 .nav {
   flex: 1;
   padding: 0.75rem 0;
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
+  overflow-y: auto;
 }
 
 .navItem {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.625rem 1rem;
+  padding: 0.75rem 1rem;
   color: var(--sidebar-text);
   font-size: 0.875rem;
   font-weight: 500;
@@ -82,6 +97,7 @@
   transition: background 0.15s, color 0.15s;
   white-space: nowrap;
   overflow: hidden;
+  text-decoration: none;
 }
 
 .navItem:hover {
@@ -96,19 +112,22 @@
 }
 
 .navIcon {
-  font-size: 1rem;
+  font-size: 1.1rem;
   flex-shrink: 0;
-  width: 1.25rem;
+  width: 1.5rem;
   text-align: center;
 }
 
 .navLabel {
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/* ── Footer ──────────────────────────────────────────────────── */
 .sidebarFooter {
   padding: 0.875rem 1rem;
   border-top: 1px solid rgba(255 255 255 / 0.08);
+  flex-shrink: 0;
 }
 
 .userInfo {
@@ -157,7 +176,7 @@
   border: 1px solid rgba(255 255 255 / 0.15);
   color: var(--sidebar-text);
   border-radius: var(--radius);
-  padding: 0.4rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   font-size: 0.8125rem;
   cursor: pointer;
   text-align: left;
@@ -169,27 +188,39 @@
   border-color: rgba(239 68 68 / 0.3);
 }
 
+/* ── Mobile toggle button ────────────────────────────────────── */
 .mobileToggleBtn {
-  display: none;
   position: fixed;
-  top: 1rem;
-  left: 1rem;
+  top: 0.875rem;
+  left: 0.875rem;
   z-index: 1001;
   background: var(--sidebar-bg);
   color: white;
   border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   font-size: 1.25rem;
   cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.15s;
+}
+.mobileToggleBtn:active { transform: scale(0.94); }
+
+/* ── Mobile overlay ──────────────────────────────────────────── */
+.mobileOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  backdrop-filter: blur(2px);
+  animation: overlayFadeIn 0.2s ease;
 }
 
-@media (max-width: 768px) {
-  .mobileToggleBtn {
-    display: flex;
-  }
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }

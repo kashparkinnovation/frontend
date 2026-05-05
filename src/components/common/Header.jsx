@@ -4,16 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import { ROLES, ROLE_PORTALS } from "@/lib/constants";
 
 export default function Header() {
   const { isAuthenticated, role } = useAuth();
   const { totalItems } = useCart();
 
   const portalLink = () => {
-    if (role === "admin") return "/admin";
-    if (role === "vendor") return "/vendor";
-    if (role === "school") return "/school";
-    return "/store";
+    return ROLE_PORTALS[role] ?? "/store";
   };
 
   return (
@@ -98,7 +96,7 @@ export default function Header() {
             </>
           ) : (
             <>
-              {role === "student" && (
+              {role === ROLES.STUDENT && (
                 <Link
                   href="/store/cart"
                   style={{

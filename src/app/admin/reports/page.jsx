@@ -7,13 +7,13 @@ const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 const STATUS_COLORS = {
-  pending: "#f59e0b",
-  confirmed: "#3b82f6",
-  processing: "#8b5cf6",
-  shipped: "#06b6d4",
-  delivered: "#10b981",
-  cancelled: "#ef4444",
-  refunded: "#6b7280",
+  awaiting_confirmation: "#f59e0b",
+  processing:           "#8b5cf6",
+  shipped:              "#3b82f6",
+  delivered:            "#10b981",
+  distributed:          "#059669",
+  cancelled:            "#ef4444",
+  refunded:             "#6b7280",
 };
 
 function BarChart({ data }) {
@@ -238,7 +238,7 @@ export default function AdminReportsPage() {
           {
             label: "Revenue This Month",
             value: fmt(stats.revenue.this_month),
-            sub: "confirmed + delivered",
+            sub: "processing + shipped + delivered + distributed",
             color: "#ef4444",
           },
         ].map((kpi, i) => (

@@ -1,47 +1,53 @@
 import React from "react";
 
-function getVariant(status) {
-  switch (status.toLowerCase()) {
-    // Order statuses
-    case "approved":
-    case "active":
-    case "delivered":
-    case "success":
-    case "collected": // distribution: student has picked up
-      return "success";
+// Maps raw API status values → display config
+const STATUS_CONFIG = {
+  // ── Order statuses (7-step) ─────────────────────────────────────
+  awaiting_confirmation: { variant: "warning",  label: "Awaiting Confirmation" },
+  processing:           { variant: "warning",  label: "Processing" },
+  shipped:              { variant: "info",     label: "Shipped" },
+  delivered:            { variant: "success",  label: "Delivered" },
+  distributed:          { variant: "success",  label: "Distributed" },
+  cancelled:            { variant: "danger",   label: "Cancelled" },
+  refunded:             { variant: "danger",   label: "Refunded" },
 
-    case "pending":
-    case "processing":
-    case "confirmed":
-      return "warning";
+  // ── Verification statuses ────────────────────────────────────────
+  approved:   { variant: "success",  label: "Approved" },
+  pending:    { variant: "warning",  label: "Pending" },
+  rejected:   { variant: "danger",   label: "Rejected" },
+  unverified: { variant: "default",  label: "Unverified" },
 
-    case "rejected":
-    case "cancelled":
-    case "failed":
-    case "inactive":
-    case "refunded":
-    case "returned": // distribution: item returned
-      return "danger";
+  // ── Generic ──────────────────────────────────────────────────────
+  active:   { variant: "success", label: "Active" },
+  inactive: { variant: "danger",  label: "Inactive" },
+  success:  { variant: "success", label: "Success" },
+  failed:   { variant: "danger",  label: "Failed" },
+  info:     { variant: "info",    label: "Info" },
 
-    case "shipped":
-    case "ready_for_pickup": // distribution: arrived at school, awaiting collection
-    case "info":
-      return "info";
+  // ── Exchange / return statuses ───────────────────────────────────
+  vendor_approved:   { variant: "info",    label: "Vendor Approved" },
+  pickup_scheduled:  { variant: "info",    label: "Pickup Scheduled" },
+  picked_up:         { variant: "info",    label: "Picked Up" },
+  new_item_shipped:  { variant: "info",    label: "New Item Shipped" },
+  new_item_delivered:{ variant: "success", label: "New Item Delivered" },
+  completed:         { variant: "success", label: "Completed" },
+};
 
-    default:
-      return "default";
-  }
-}
-
-function getLabel(status) {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+function getConfig(status) {
+  const key = (status || "").toLowerCase().replace(/ /g, "_");
+  if (STATUS_CONFIG[key]) return STATUS_CONFIG[key];
+  // Fallback: humanize the raw value
+  return {
+    variant: "default",
+    label: key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+  };
 }
 
 export default function StatusBadge({ status, className = "" }) {
-  const variant = getVariant(status);
+  const { variant, label } = getConfig(status);
   return (
     <span className={`badge badge-${variant} ${className}`}>
-      {getLabel(status)}
+      {label}
     </span>
   );
 }

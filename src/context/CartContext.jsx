@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import apiClient from "@/lib/api";
 import { useAuth } from "./AuthContext";
+import { ROLES } from "@/lib/constants";
 
 const CartContext = createContext(undefined);
 
@@ -17,7 +18,7 @@ export function CartProvider({ children }) {
   const { isAuthenticated, user } = useAuth();
 
   const fetchCart = useCallback(async () => {
-    if (!isAuthenticated || user?.role !== "STUDENT") return;
+    if (!isAuthenticated || user?.role !== ROLES.STUDENT) return;
     try {
       const { data } = await apiClient.get("/orders/cart/");
       // Map backend CartItem to frontend CartItem type
@@ -43,21 +44,15 @@ export function CartProvider({ children }) {
 
   const addItem = useCallback(
     async (newItem) => {
-      if (!isAuthenticated || user?.role !== "STUDENT") return;
+      if (!isAuthenticated || user?.role !== ROLES.STUDENT) return;
       try {
-        await apiClient.post("/orders/cart/items/", {
-          inventory_id: newItem.inventoryId,
-          quantity: newItem.quantity, // Add to existing or set depending on backend. We wrote it to SET. So we should compute total quantity.
-        });
-        // But wait! The frontend sends `newItem.quantity = 1` usually. We should probably fetch the cart after or just compute the sum.
-        // Since our backend sets the quantity, we need to get current quantity + newItem.quantity.
-        // Let's modify the backend to *add* quantity if not specified as replace? Or just compute it here.
         const existing = items.find(
           (i) => i.inventoryId === newItem.inventoryId,
         );
         const newQty = existing
           ? existing.quantity + newItem.quantity
           : newItem.quantity;
+
         await apiClient.post("/orders/cart/items/", {
           inventory_id: newItem.inventoryId,
           quantity: newQty,
@@ -72,7 +67,7 @@ export function CartProvider({ children }) {
 
   const removeItem = useCallback(
     async (inventoryId) => {
-      if (!isAuthenticated || user?.role !== "STUDENT") return;
+      if (!isAuthenticated || user?.role !== ROLES.STUDENT) return;
       try {
         await apiClient.delete("/orders/cart/items/", {
           data: { inventory_id: inventoryId },
@@ -87,7 +82,7 @@ export function CartProvider({ children }) {
 
   const updateQuantity = useCallback(
     async (inventoryId, qty) => {
-      if (!isAuthenticated || user?.role !== "STUDENT") return;
+      if (!isAuthenticated || user?.role !== ROLES.STUDENT) return;
       try {
         await apiClient.post("/orders/cart/items/", {
           inventory_id: inventoryId,
@@ -102,7 +97,7 @@ export function CartProvider({ children }) {
   );
 
   const clearCart = useCallback(async () => {
-    if (!isAuthenticated || user?.role !== "STUDENT") return;
+    if (!isAuthenticated || user?.role !== ROLES.STUDENT) return;
     try {
       // Loop and delete or we could add a clear endpoint
       for (const item of items) {
