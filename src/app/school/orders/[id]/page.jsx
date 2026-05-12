@@ -119,12 +119,28 @@ export default function SchoolOrderDetailPage() {
         {/* Side panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-          {/* Student & Order Info */}
+          {/* Student & Parent Info */}
           <div className="card">
-            <h2 style={{ fontSize: '1.1rem', margin: '0 0 1rem' }}>Student Details</h2>
-            <p style={{ margin: '0 0 0.5rem' }}><strong>Name:</strong> {order.student_name}</p>
+            <h2 style={{ fontSize: '1.1rem', margin: '0 0 1rem' }}>Student & Parent Details</h2>
+            <p style={{ margin: '0 0 0.5rem' }}><strong>Student:</strong> {order.student_name}</p>
+            {order.student_details && (
+              <>
+                <p style={{ margin: '0 0 0.25rem', fontSize: '0.875rem', color: '#475569' }}>
+                  Class: {order.student_details.class_name}{order.student_details.section ? ` - ${order.student_details.section}` : ''}
+                </p>
+                {order.student_details.roll_number && (
+                  <p style={{ margin: '0 0 0.25rem', fontSize: '0.875rem', color: '#475569' }}>Roll No: {order.student_details.roll_number}</p>
+                )}
+              </>
+            )}
+            <div style={{ borderTop: '1px solid #f1f5f9', margin: '0.75rem 0', paddingTop: '0.75rem' }}>
+              <p style={{ margin: '0 0 0.25rem', fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>Parent / Guardian</p>
+              <p style={{ margin: '0 0 0.25rem' }}><strong>{order.parent_name || '—'}</strong></p>
+              {order.parent_phone && <p style={{ margin: '0 0 0.125rem', fontSize: '0.875rem', color: '#475569' }}>📞 {order.parent_phone}</p>}
+              {order.parent_email && <p style={{ margin: '0', fontSize: '0.875rem', color: '#475569' }}>✉️ {order.parent_email}</p>}
+            </div>
             {order.bulk_order_number && (
-              <p style={{ margin: 0 }}>
+              <p style={{ margin: '0.75rem 0 0' }}>
                 <strong>Part of Bulk Order:</strong>{' '}
                 <Link href={`/school/orders/bulk/${order.bulk_order}`} style={{ color: 'var(--color-primary)' }}>
                   {order.bulk_order_number}

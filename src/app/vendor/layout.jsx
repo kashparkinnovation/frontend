@@ -9,6 +9,7 @@ import styles from "../portal.module.css";
 const vendorNavItems = [
   { label: "Dashboard", href: "/vendor", icon: "📊" },
   { label: "Schools", href: "/vendor/schools", icon: "🏫" },
+  { label: "Verifications", href: "/vendor/verifications", icon: "✅" },
   { label: "Products", href: "/vendor/products", icon: "👕" },
   { label: "Inventory", href: "/vendor/inventory", icon: "📦" },
   { label: "Orders", href: "/vendor/orders", icon: "🛒" },

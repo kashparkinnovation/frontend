@@ -1,16 +1,26 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
 import StatusBadge from '@/components/ui/StatusBadge';
 import Drawer, { DrawerRow, DrawerSection } from '@/components/ui/Drawer';
 import { useToast } from '@/context/ToastContext';
 
+const STATUS_TABS = [
+  { key: '', label: 'All' },
+  { key: 'awaiting_confirmation', label: 'Awaiting' },
+  { key: 'processing', label: 'Processing' },
+  { key: 'shipped', label: 'Shipped' },
+  { key: 'delivered', label: 'Delivered' },
+  { key: 'distributed', label: 'Distributed' },
+];
+
 export default function SchoolOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selected, setSelected] = useState(null);
   const [distributing, setDistributing] = useState(false);
   const [returnModalOpen, setReturnModalOpen] = useState(false);
@@ -21,7 +31,7 @@ export default function SchoolOrdersPage() {
   const [submittingReturn, setSubmittingReturn] = useState(false);
   const { showToast } = useToast();
 
-  const fetchOrders = React.useCallback(async () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
       const query = filter ? `?status=${filter}` : '';
@@ -40,7 +50,6 @@ export default function SchoolOrdersPage() {
     if (!selected) return;
     setDistributing(true);
     try {
-      // Endpoint: PATCH /api/v1/orders/school/{pk}/distribute/
       const { data } = await apiClient.patch(`/orders/school/${selected.id}/distribute/`);
       setSelected(data);
       setOrders((prev) => prev.map((o) => o.id === data.id ? data : o));
@@ -78,14 +87,38 @@ export default function SchoolOrdersPage() {
     }
   };
 
-  const tabs = [
-    { key: '', label: 'All' },
-    { key: 'awaiting_confirmation', label: 'Awaiting' },
-    { key: 'processing', label: 'Processing' },
-    { key: 'shipped', label: 'Shipped' },
-    { key: 'delivered', label: 'Delivered' },
-    { key: 'distributed', label: 'Distributed' },
-  ];
+  const downloadFile = async (url, filename) => {
+    try {
+      const res = await apiClient.get(url, { responseType: 'blob' });
+      const blob = new Blob([res.data]);
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (err) {
+      showToast('Download failed', 'error');
+    }
+  };
+
+  // Client-side search
+  const filteredOrders = orders.filter(o => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      o.order_number?.toLowerCase().includes(q) ||
+      o.student_name?.toLowerCase().includes(q) ||
+      o.parent_name?.toLowerCase().includes(q) ||
+      o.vendor_name?.toLowerCase().includes(q)
+    );
+  });
+
+  // Tab counts
+  const tabCounts = {};
+  STATUS_TABS.forEach(t => {
+    tabCounts[t.key] = t.key === '' ? orders.length : orders.filter(o => o.status === t.key).length;
+  });
 
   return (
     <div>
@@ -94,15 +127,37 @@ export default function SchoolOrdersPage() {
         <Link href="/school/orders/bulk" className="btn btn-primary">Bulk Orders</Link>
       </div>
 
+      {/* Search */}
+      <div style={{ marginBottom: '1rem' }}>
+        <div className="search-bar" style={{ maxWidth: '400px' }}>
+          <span>🔍</span>
+          <input
+            placeholder="Search order #, student, parent…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* Status Tabs */}
       <div className="tabs" style={{ marginBottom: '1.25rem' }}>
-        {tabs.map(({ key, label }) => (
-          <button key={key} className={`tab-btn ${filter === key ? 'active' : ''}`} onClick={() => setFilter(key)}>{label}</button>
+        {STATUS_TABS.map(({ key, label }) => (
+          <button
+            key={key}
+            className={`tab-btn ${filter === key ? 'active' : ''}`}
+            onClick={() => setFilter(key)}
+          >
+            {label} {tabCounts[key] > 0 ? `(${tabCounts[key]})` : ''}
+          </button>
         ))}
       </div>
 
+      {/* Orders Table */}
       <div className="card" style={{ padding: 0 }}>
         {loading ? (
-          <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>
+          <div style={{ padding: '2rem', textAlign: 'center' }}>
+            <span className="spinner dark" style={{ width: '1.5rem', height: '1.5rem' }} />
+          </div>
         ) : (
           <div className="table-wrapper">
             <table className="data-table">
@@ -110,23 +165,38 @@ export default function SchoolOrdersPage() {
                 <tr>
                   <th>Order #</th>
                   <th>Student</th>
+                  <th>Parent</th>
                   <th>Vendor</th>
+                  <th>Items</th>
                   <th>Total</th>
                   <th>Status</th>
                   <th>Date</th>
                 </tr>
               </thead>
               <tbody>
-                {orders.length === 0 ? (
-                  <tr><td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No orders found.</td></tr>
-                ) : orders.map((o) => (
-                  <tr key={o.id} onClick={() => setSelected(o)}>
+                {filteredOrders.length === 0 ? (
+                  <tr><td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No orders found.</td></tr>
+                ) : filteredOrders.map((o) => (
+                  <tr key={o.id} onClick={() => setSelected(o)} style={{ cursor: 'pointer' }}>
                     <td style={{ fontWeight: 600, fontFamily: 'monospace' }}>{o.order_number}</td>
-                    <td>{o.student_name}</td>
-                    <td>{o.vendor_name}</td>
-                    <td>₹{parseFloat(o.total_amount).toLocaleString('en-IN')}</td>
+                    <td>
+                      <div style={{ fontWeight: 500 }}>{o.student_name}</div>
+                      {o.student_details && (
+                        <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                          {o.student_details.class_name}{o.student_details.section ? `-${o.student_details.section}` : ''}
+                          {o.student_details.roll_number ? ` | Roll: ${o.student_details.roll_number}` : ''}
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.85rem' }}>{o.parent_name || '—'}</div>
+                      {o.parent_phone && <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{o.parent_phone}</div>}
+                    </td>
+                    <td style={{ fontSize: '0.85rem' }}>{o.vendor_name}</td>
+                    <td style={{ textAlign: 'center' }}>{o.items?.length ?? 0}</td>
+                    <td style={{ fontWeight: 600 }}>₹{parseFloat(o.total_amount).toLocaleString('en-IN')}</td>
                     <td><StatusBadge status={o.status} /></td>
-                    <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{new Date(o.created_at).toLocaleDateString()}</td>
+                    <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{new Date(o.created_at).toLocaleDateString('en-IN')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -135,16 +205,16 @@ export default function SchoolOrdersPage() {
         )}
       </div>
 
-      <Drawer isOpen={!!selected} onClose={() => setSelected(null)} title={`Order ${selected?.order_number ?? ''}`} subtitle={selected?.student_name}>
-        {selected && (
+      {/* Order Detail Drawer */}
+      <Drawer isOpen={!!selected} onClose={() => { setSelected(null); setReturnModalOpen(false); }} title={`Order ${selected?.order_number ?? ''}`} subtitle={selected?.student_name} width="520px">
+        {selected && !returnModalOpen && (
           <>
             <DrawerSection title="Summary" />
             <DrawerRow label="Order #" value={<span style={{ fontFamily: 'monospace' }}>{selected.order_number}</span>} />
-            <DrawerRow label="Student" value={selected.student_name} />
-            <DrawerRow label="Vendor" value={selected.vendor_name} />
             <DrawerRow label="Order Status" value={<StatusBadge status={selected.status} />} />
-            <DrawerRow label="Total" value={<strong>₹{parseFloat(selected.total_amount).toLocaleString('en-IN')}</strong>} />
-            <DrawerRow label="Date" value={new Date(selected.created_at).toLocaleString()} />
+            <DrawerRow label="Total" value={<strong style={{ color: '#059669', fontSize: '1.05rem' }}>₹{parseFloat(selected.total_amount).toLocaleString('en-IN')}</strong>} />
+            <DrawerRow label="Date" value={new Date(selected.created_at).toLocaleString('en-IN')} />
+            <DrawerRow label="Payment" value={`${selected.payment_method?.replace(/_/g, ' ')} (${selected.payment_status})`} />
             {selected.bulk_order_number && (
               <DrawerRow label="Bulk Order" value={
                 <Link href={`/school/orders/bulk/${selected.bulk_order}`} style={{ color: 'var(--color-primary)' }} onClick={() => setSelected(null)}>
@@ -153,6 +223,26 @@ export default function SchoolOrdersPage() {
               } />
             )}
 
+            {/* Parent Details */}
+            <DrawerSection title="Parent / Guardian" />
+            <DrawerRow label="Name" value={selected.parent_name || '—'} />
+            <DrawerRow label="Phone" value={selected.parent_phone || '—'} />
+            <DrawerRow label="Email" value={selected.parent_email || '—'} />
+
+            {/* Student */}
+            <DrawerSection title="Student" />
+            <DrawerRow label="Student" value={selected.student_name} />
+            {selected.student_details && (
+              <>
+                <DrawerRow label="Class" value={`${selected.student_details.class_name}${selected.student_details.section ? ` - ${selected.student_details.section}` : ''}`} />
+                {selected.student_details.roll_number && <DrawerRow label="Roll No" value={selected.student_details.roll_number} />}
+              </>
+            )}
+
+            {/* Vendor */}
+            <DrawerRow label="Vendor" value={selected.vendor_name} />
+
+            {/* Items */}
             {selected.items && selected.items.length > 0 && (
               <>
                 <DrawerSection title="Items" />
@@ -162,12 +252,18 @@ export default function SchoolOrdersPage() {
                       <div style={{ fontWeight: 500 }}>{item.product_name}</div>
                       <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>{item.size}{item.color ? ` / ${item.color}` : ''} × {item.quantity}</div>
                     </div>
-                    <div style={{ fontWeight: 600 }}>₹{item.unit_price}</div>
+                    <div style={{ fontWeight: 600 }}>₹{parseFloat(item.line_total).toLocaleString('en-IN')}</div>
                   </div>
                 ))}
+                <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '2px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>
+                    <span>Total</span><span>₹{parseFloat(selected.total_amount).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
               </>
             )}
 
+            {/* Distribution - Mark as distributed */}
             {selected.status === 'delivered' && (
               <div className="drawer-actions">
                 <button onClick={handleMarkAsDistributed} disabled={distributing} className="btn btn-primary" style={{ width: '100%' }}>
@@ -176,43 +272,22 @@ export default function SchoolOrdersPage() {
               </div>
             )}
 
+            {/* Action Buttons */}
             <div className="drawer-actions" style={{ borderTop: 'none', paddingTop: 0, flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                 <button 
-                  onClick={async () => {
-                    try {
-                      const res = await apiClient.get(`/orders/${selected.id}/invoice/`, { responseType: 'blob' });
-                      const url = window.URL.createObjectURL(new Blob([res.data]));
-                      const link = document.createElement('a');
-                      link.href = url;
-                      link.setAttribute('download', `Invoice_${selected.order_number}.pdf`);
-                      document.body.appendChild(link);
-                      link.click();
-                      link.parentNode?.removeChild(link);
-                    } catch (err) { showToast('Failed to download invoice', 'error'); }
-                  }}
+                  onClick={() => downloadFile(`/orders/${selected.id}/invoice/`, `Invoice_${selected.order_number}.pdf`)}
                   className="btn btn-outline"
-                  style={{ flex: 1, padding: '0.75rem', background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  style={{ flex: 1 }}
                 >
-                  📄 Download Invoice
+                  📄 Invoice
                 </button>
                 <button 
-                  onClick={async () => {
-                    try {
-                      const res = await apiClient.get(`/orders/${selected.id}/delivery-slip/`, { responseType: 'blob' });
-                      const url = window.URL.createObjectURL(new Blob([res.data]));
-                      const link = document.createElement('a');
-                      link.href = url;
-                      link.setAttribute('download', `DeliverySlip_${selected.order_number}.pdf`);
-                      document.body.appendChild(link);
-                      link.click();
-                      link.parentNode?.removeChild(link);
-                    } catch (err) { showToast('Failed to download delivery slip', 'error'); }
-                  }}
+                  onClick={() => downloadFile(`/orders/${selected.id}/delivery-slip/`, `Slip_${selected.order_number}.pdf`)}
                   className="btn btn-outline"
-                  style={{ flex: 1, padding: '0.75rem', background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  style={{ flex: 1 }}
                 >
-                  🏷️ Download Delivery Slip
+                  🏷️ Slip
                 </button>
               </div>
               {selected.status === 'distributed' && (
@@ -224,7 +299,7 @@ export default function SchoolOrdersPage() {
                   Request Return / Exchange
                 </button>
               )}
-              <Link href={`/school/orders/${selected.id}`} className="btn btn-outline" onClick={() => setSelected(null)}>
+              <Link href={`/school/orders/${selected.id}`} className="btn btn-outline" style={{ width: '100%', display: 'flex', justifyContent: 'center' }} onClick={() => setSelected(null)}>
                 View Full Details →
               </Link>
               {selected.can_cancel && (
@@ -232,10 +307,10 @@ export default function SchoolOrdersPage() {
                   onClick={async () => {
                     if (!confirm('Are you sure you want to cancel this order?')) return;
                     try {
-                      await apiClient.post(`/orders/${selected.id}/cancel/`);
+                      const { data } = await apiClient.post(`/orders/${selected.id}/cancel/`);
                       showToast('Order cancelled successfully', 'success');
-                      setOrders((prev) => prev.map((o) => o.id === selected.id ? { ...o, status: 'cancelled', can_cancel: false } : o));
-                      setSelected({ ...selected, status: 'cancelled', can_cancel: false });
+                      setOrders((prev) => prev.map((o) => o.id === data.id ? data : o));
+                      setSelected(data);
                     } catch (err) {
                       showToast('Failed to cancel order', 'error');
                     }
@@ -247,9 +322,18 @@ export default function SchoolOrdersPage() {
                 </button>
               )}
             </div>
+
+            {/* Notes */}
+            {selected.notes && (
+              <>
+                <DrawerSection title="Notes" />
+                <p style={{ margin: 0, fontSize: '0.875rem', color: '#475569' }}>{selected.notes}</p>
+              </>
+            )}
           </>
         )}
 
+        {/* Return / Exchange Form */}
         {selected && returnModalOpen && (
           <form onSubmit={handleReturnSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <DrawerSection title="Request Return or Exchange (On behalf of Student)" />
